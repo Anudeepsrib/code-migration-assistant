@@ -4,34 +4,6 @@ __pycache__/
 *$py.class
 *.so
 .Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# Virtual Env
-venv/
-env/
-ENV/
-.env
-.venv
-
-# VS Code
-.vscode/
-
 # Node
 node_modules/
 npm-debug.log
@@ -42,11 +14,140 @@ yarn-error.log
 
 # Pytest
 .pytest_cache/
+
+# Secrets and Sensitive Data
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+secrets/
+api_keys/
+credentials/
+config/secrets.yaml
+config/production.yaml
+config/staging.yaml
+*.json.bak
+*.js.bak
+*.py.bak
+
+# IDE and Editor Files
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json
+.sublime-project
+.sublime-workspace
+
+# Backup Files
+*.bak
+*.backup
+*.old
+*.orig
+*.rej
+
+# Temporary Files
+tmp/
+temp/
+*.tmp
+*.temp
+.cache/
+*.cache
+
+# OS Generated Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs and Debug Files
+logs/
+*.log
+*.out
+*.err
+debug.log
+error.log
+access.log
+audit.log
+
+# Coverage and Profiling
 .coverage
 htmlcov/
+.coverage.*
+*.prof
+*.profile
+*.lprof
 
-# Code Migration
+# Build Artifacts
+build/
+dist/
+target/
+bin/
+out/
+output/
+
+# Database Files
+*.db
+*.sqlite
+*.sqlite3
+*.sql
+
+# Configuration Files with Secrets
+config/production.*
+config/secrets.*
+config/local.*
+*config.yaml
+*config.json
+*config.toml
+*config.ini
+
+# Test Artifacts
+test-results/
+test-reports/
+test-output/
+coverage.xml
+test-results.xml
+
+# Documentation Build
+docs/_build/
+docs/.doctrees/
+site/
+
+# Local Development
+.local/
+local/
+dev/
+development/
+
+# Security Scanning Results
+security-scan.json
+compliance-report.json
+audit-report.json
+bandit-report.json
+safety-report.json
+
+# Performance Reports
+performance-report.json
+benchmark-results.json
+profiling-results.json
+
+# Migration Artifacts
 .migration-backups/
+.migration-logs/
+.migration-checkpoints/
 migration-report.md
 *.log
 test_output*.txt
