@@ -1,0 +1,16 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.1, pytest-8.3.4, pluggy-1.5.0 -- C:\Users\anude\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\anude\Documents\GitHub\code-migration-assistant
+configfile: pyproject.toml
+plugins: anyio-4.7.0, Faker-40.1.2, langsmith-0.3.45
+collecting ... collected 6 items
+
+skills/code-migration/tests/test_migrators.py::TestReactHooksMigrator::test_can_migrate PASSED [ 16%]
+skills/code-migration/tests/test_migrators.py::TestReactHooksMigrator::test_migrate_class_component PASSED [ 33%]
+skills/code-migration/tests/test_migrators.py::TestReactHooksMigrator::test_migrate_no_change PASSED [ 50%]
+skills/code-migration/tests/test_security.py::TestSecurity::test_validate_path_valid PASSED [ 66%]
+skills/code-migration/tests/test_security.py::TestSecurity::test_validate_path_traversal PASSED [ 83%]
+skills/code-migration/tests/test_security.py::TestSecurity::test_safe_write_backup PASSED [100%]
+
+============================== 6 passed in 0.13s ==============================

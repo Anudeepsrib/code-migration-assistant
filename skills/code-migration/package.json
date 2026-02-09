@@ -1,0 +1,18 @@
+{
+    "name": "code-migration-skill",
+    "version": "1.0.0",
+    "description": "AI Skill for code migration",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [
+        "ai",
+        "agent",
+        "skill",
+        "migration",
+        "refactoring"
+    ],
+    "author": "Open Source Contributor",
+    "license": "Apache-2.0",
+    "dependencies": {}
+}
