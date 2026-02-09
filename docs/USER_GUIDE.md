@@ -31,7 +31,7 @@ pip install -r requirements.txt
 pip install -r requirements-security.txt
 
 # Verify installation
-python -m skills.code_migration --version
+python -m code_migration --version
 ```
 
 ### First Migration
@@ -104,10 +104,10 @@ cd code-migration-assistant
 pip install -e ".[dev]"
 
 # Run tests
-pytest skills/code-migration/tests/
+pytest tests/
 
 # Run security checks
-bandit -r skills/code_migration/
+bandit -r src/code_migration/
 safety check
 ```
 

@@ -1,0 +1,12 @@
+typer[all]
+rich
+pyyaml
+python-dotenv
+
+[dev]
+pytest
+pytest-cov
+black
+isort
+bandit
+pre-commit

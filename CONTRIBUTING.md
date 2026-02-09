@@ -47,12 +47,14 @@ pip install -e ".[dev]"
 pytest
 
 # Run security checks
-bandit -r skills/code_migration/
+bandit -r src/code_migration/
 safety check
 
 # Run code formatting checks
-black --check skills/code_migration/
-isort --check-only skills/code_migration/
+black --check src/code_migration/
+isort --check-only src/code_migration/
+flake8 src/code_migration/
+mypy src/code_migration/
 ```
 
 ## Development Workflow

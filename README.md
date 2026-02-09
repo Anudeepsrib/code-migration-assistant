@@ -69,7 +69,7 @@ pip install -r requirements.txt
 pip install -r requirements-security.txt
 
 # Verify installation
-python -m skills.code_migration --version
+python -m code_migration --version
 ```
 
 ## Usage
@@ -107,27 +107,27 @@ migrate compliance scan ./my-project --pii --secrets
 
 ## Documentation
 
-- [User Guide](skills/code-migration/USER_GUIDE.md) - Complete usage documentation.
-- [Installation Guide](skills/code-migration/docs/INSTALLATION.md) - Detailed setup instructions.
+- [User Guide](docs/USER_GUIDE.md) - Complete usage documentation.
+- [Installation Guide](docs/INSTALLATION.md) - Detailed setup instructions.
 - [Security Policy](docs/security/SECURITY.md) - Security architecture and controls.
-- [Contributing Guide](skills/code-migration/CONTRIBUTING.md) - Development guidelines.
-- [Architecture](skills/code-migration/README.md#-architecture) - System architecture overview.
+- [Contributing Guide](CONTRIBUTING.md) - Development guidelines.
+- [Architecture](README.md#-architecture) - System architecture overview.
 
 
 ## Testing
 
 ```bash
 # Run security tests
-pytest skills/code-migration/tests/security/
+pytest tests/security/
 
 # Run compliance tests
-pytest skills/code-migration/tests/compliance/
+pytest tests/compliance/
 
 # Run integration tests
-pytest skills/code-migration/tests/integration/
+pytest tests/integration/
 
 # Run all tests
-pytest skills/code-migration/tests/
+pytest tests/
 ```
 
 ## Contributing
