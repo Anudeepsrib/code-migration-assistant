@@ -2,3 +2,5 @@ typer[all]
 rich
 pyyaml
 python-dotenv
+networkx
+psutil
