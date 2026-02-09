@@ -1,6 +1,6 @@
 # Code Migration Assistant
 
-[![Build Status](https://img.shields.io/github/workflow/status/yourusername/code-migration-assistant/CI)](https://github.com/yourusername/code-migration-assistant/actions)
+[![Build Status](https://img.shields.io/github/workflow/status/anudeepsrib/code-migration-assistant/CI)](https://github.com/anudeepsrib/code-migration-assistant/actions)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Agent Skills Standard](https://img.shields.io/badge/Agent_Skills-Standard-green)](https://agentskills.io)
@@ -24,7 +24,7 @@
 pip install code-migration-assistant
 
 # Via Skills CLI (for AI Agents)
-npx skills add yourusername/code-migration-assistant --skill code-migration
+npx skills add anudeepsrib/code-migration-assistant --skill code-migration
 ```
 
 ### Usage

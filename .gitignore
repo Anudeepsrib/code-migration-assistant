@@ -48,3 +48,5 @@ htmlcov/
 # Code Migration
 .migration-backups/
 migration-report.md
+*.log
+test_output*.txt
