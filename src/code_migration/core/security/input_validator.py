@@ -90,7 +90,7 @@ class CodeValidator:
         # Validate it's parseable (but never execute)
         try:
             ast.parse(pattern)
-        except SyntaxError as e:
+        except Exception as e:
             raise SecurityError(f"Invalid Python syntax: {e}")
         
         return True
@@ -179,6 +179,6 @@ class CodeValidator:
         
         # Limit length
         if len(sanitized) > 200:
-            sanitized = sanitized[:200] + "..."
+            sanitized = sanitized[:197] + "..."
         
         return sanitized.strip()

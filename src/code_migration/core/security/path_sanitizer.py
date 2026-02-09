@@ -53,7 +53,7 @@ class PathSanitizer:
             Path: Sanitized absolute Path object
         """
         # Input validation
-        if not path or len(path) > PathSanitizer.MAX_PATH_LENGTH:
+        if not path or len(path) >= PathSanitizer.MAX_PATH_LENGTH:
             raise SecurityError("Invalid path length")
         
         # Check for dangerous patterns
@@ -101,7 +101,12 @@ class PathSanitizer:
         
         # Resolve to canonical absolute path
         try:
-            abs_path = Path(path).resolve(strict=False)  # Directory may not exist yet
+            # If path is absolute, use it. If relative, join with allowed_base
+            path_obj = Path(path)
+            if path_obj.is_absolute():
+                abs_path = path_obj.resolve(strict=True)
+            else:
+                abs_path = (Path(allowed_base) / path).resolve(strict=True)
         except (OSError, RuntimeError) as e:
             raise SecurityError(f"Directory path resolution failed: {e}")
         

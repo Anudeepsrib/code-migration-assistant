@@ -331,7 +331,9 @@ class TestAuditReporter:
         
         with AuditReporter(temp_project_dir) as reporter:
             # Should handle malformed entries gracefully
-            report = reporter.generate_soc2_report()
+            start_date = datetime(2025, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+            end_date = datetime(2025, 1, 2, 0, 0, 0, tzinfo=timezone.utc)
+            report = reporter.generate_soc2_report(start_date, end_date)
             
             assert report['report_type'] == 'SOC2'
             assert 'summary' in report
@@ -455,7 +457,9 @@ class TestAuditReporterEdgeCases:
         audit_log.write_text('\n'.join(unicode_events), encoding='utf-8')
         
         with AuditReporter(temp_project_dir) as reporter:
-            report = reporter.generate_soc2_report()
+            start_date = datetime(2025, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+            end_date = datetime(2025, 1, 2, 0, 0, 0, tzinfo=timezone.utc)
+            report = reporter.generate_soc2_report(start_date, end_date)
             
             # Should handle Unicode in events
             assert report['summary']['total_events'] >= 2
@@ -483,7 +487,9 @@ class TestAuditReporterEdgeCases:
         audit_log.write_text('\n'.join(events))
         
         with AuditReporter(temp_project_dir) as reporter:
-            report = reporter.generate_soc2_report()
+            start_date = datetime(2025, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+            end_date = datetime(2025, 1, 2, 0, 0, 0, tzinfo=timezone.utc)
+            report = reporter.generate_soc2_report(start_date, end_date)
             
             # Should handle large number of events
             assert report['summary']['total_events'] == 1000

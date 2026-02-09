@@ -91,14 +91,13 @@ class TestCodeValidator:
         
         with pytest.raises(SecurityError, match="Pattern size exceeds"):
             CodeValidator.validate_pattern(oversized_content)
-    
     def test_invalid_syntax_rejection(self):
         """Test that invalid Python syntax is rejected."""
         invalid_patterns = [
-            "def invalid_syntax(\n    # Missing closing parenthesis",
-            "if True\n    print('no colon')",
-            "x = 1 + + 2",  # Invalid operator
-            "class InvalidClass\n    def __init__(self\n        pass"  # Missing colon
+            "def invalid_syntax(", # incomplete statement
+            "if True print('no colon')", # missing colon
+            "!!!", # invalid characters
+            "[1, 2, " # unclosed bracket
         ]
         
         for pattern in invalid_patterns:
@@ -176,7 +175,7 @@ class TestCodeValidator:
             ("Normal input", "Normal input"),
             ("Input with\nnewlines", "Input withnewlines"),
             ("Input with\ttabs", "Input withtabs"),
-            ("Very long input that should be truncated " * 10, "Very long input that should be truncated Very long input that should be truncated Very long input that should be truncated Very long input that should be truncated Very long input that should be trunc..."),
+            ("Very long input that should be truncated " * 10, "Very long input that should be truncated Very long input that should be truncated Very long input that should be truncated Very long input that should be truncated Very long input that should be tr..."),
             ("", ""),
             (None, "")
         ]

@@ -28,6 +28,8 @@ class TestPathSanitizer:
         (temp_base_dir / "safe_dir" / "nested_file.py").touch()
         (temp_base_dir / "config").mkdir()
         (temp_base_dir / "config" / "settings.yaml").touch()
+        (temp_base_dir / "tests").mkdir()
+        (temp_base_dir / "tests" / "test_migration.py").touch()
         
         safe_paths = [
             "safe_file.py",
@@ -64,14 +66,14 @@ class TestPathSanitizer:
     def test_dangerous_pattern_detection(self, temp_base_dir):
         """Test detection of dangerous path patterns."""
         dangerous_patterns = [
-            "file.py~",  # Backup file
-            "script.sh",  # Shell script
-            "malicious.exe",
-            "virus.bat",
-            "trojan.com",
-            "rootkit.dll",
-            "malware.so",
-            "backdoor.dylib"
+            "path/with/../traversal.py",
+            "~/home_dir.py",
+            "$variable.py",
+            "`command`.py",
+            "pipe|.py",
+            "semicolon;.py",
+            "background&.py",
+            "null\x00byte.py"
         ]
         
         for pattern in dangerous_patterns:
@@ -185,6 +187,8 @@ class TestPathSanitizer:
         ]
         
         for ext in disallowed_extensions:
+            test_file = temp_base_dir / f"test{ext}"
+            test_file.touch()
             with pytest.raises(SecurityError, match="File extension not allowed"):
                 PathSanitizer.sanitize(f"test{ext}", temp_base_dir)
 

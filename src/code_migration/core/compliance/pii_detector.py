@@ -32,7 +32,7 @@ class PIIDetector:
     # PII patterns (GDPR Article 4)
     PII_PATTERNS = {
         'email': {
-            'pattern': r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
+            'pattern': r'(?u)\b[\w._%+-]+@[\w.-]+\.[a-zA-Z]{2,}\b',
             'severity': 'MEDIUM',
             'confidence': 'HIGH',
             'regulation': 'GDPR'
@@ -90,19 +90,19 @@ class PIIDetector:
     # PHI patterns (HIPAA)
     PHI_PATTERNS = {
         'medical_record': {
-            'pattern': r'(?i)mrn[\s:]+\d+',
+            'pattern': r'(?i)mrn[\s:=]*[A-Z0-9]+',
             'severity': 'CRITICAL',
             'confidence': 'HIGH',
             'regulation': 'HIPAA'
         },
         'diagnosis_code': {
-            'pattern': r'(?i)icd[\s-]?(9|10)[\s:]+[A-Z0-9.]+',
+            'pattern': r'(?i)icd[\s-]?(9|10)[\s:=]+[A-Z0-9.]+',
             'severity': 'HIGH',
             'confidence': 'HIGH',
             'regulation': 'HIPAA'
         },
         'patient_id': {
-            'pattern': r'(?i)patient[\s_]id[\s:]+\d+',
+            'pattern': r'(?i)patient[\s_]id[\s:=]+\S+',
             'severity': 'CRITICAL',
             'confidence': 'HIGH',
             'regulation': 'HIPAA'

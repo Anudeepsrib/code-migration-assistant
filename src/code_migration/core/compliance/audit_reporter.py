@@ -307,7 +307,7 @@ class AuditReporter:
             
             return True
             
-        except Exception:
+        except (IOError, OSError):
             return False
     
     # SOC2 assessment methods
