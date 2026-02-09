@@ -113,13 +113,6 @@ migrate compliance scan ./my-project --pii --secrets
 - [Contributing Guide](skills/code-migration/CONTRIBUTING.md) - Development guidelines.
 - [Architecture](skills/code-migration/README.md#-architecture) - System architecture overview.
 
-## Enterprise Support
-
-For enterprise support, custom integrations, and professional services:
-
-- **Email**: enterprise@code-migration.ai
-- **Phone**: +1-555-MIGRATE
-- **Documentation**: [Enterprise Docs](https://docs.code-migration.ai/enterprise)
 
 ## Testing
 
