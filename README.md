@@ -116,19 +116,31 @@ migrate compliance scan ./my-project --pii --secrets
 
 ## Testing
 
+Running the full test suite can take a significant amount of time due to performance and compliance checks on large codebases. We recommend running only the essential tests during development.
+
 ```bash
+# Run only fast tests (recommended for development)
+pytest -m "not slow"
+
 # Run security tests
 pytest tests/security/
 
 # Run compliance tests
 pytest tests/compliance/
 
-# Run integration tests
-pytest tests/integration/
+# Run performance tests (WARNING: Takes significant time)
+pytest tests/performance/
 
 # Run all tests
 pytest tests/
 ```
+
+### Test Markers
+- `slow`: Tests that take a long time to execute (e.g., performance and complex integrations).
+- `performance`: Performance benchmarks and stress tests.
+- `security`: Security-related tests and vulnerability scans.
+- `compliance`: PII/PHI detection and regulatory compliance checks.
+- `integration`: End-to-end workflow tests.
 
 ## Contributing
 

@@ -11,7 +11,7 @@ Generates D3.js force-directed graphs for migration planning:
 import json
 import networkx as nx
 from pathlib import Path
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Set, Tuple, Optional
 
 from ..security import PathSanitizer, SafeCodeAnalyzer
 
@@ -29,16 +29,17 @@ class VisualMigrationPlanner:
     SECURITY: Graph generation is read-only analysis.
     """
     
-    def __init__(self, project_path: Path):
+    def __init__(self, project_path: Path, allowed_base: Optional[Path] = None):
         """
         Initialize visual migration planner.
         
         Args:
             project_path: Path to project to analyze
+            allowed_base: Base directory that paths must stay within (default: current working directory)
         """
         self.project_path = PathSanitizer.sanitize(
             str(project_path),
-            allowed_base=Path.cwd()
+            allowed_base=allowed_base or Path.cwd()
         )
         self.graph = nx.DiGraph()
         self.code_analyzer = SafeCodeAnalyzer()

@@ -18,6 +18,8 @@ from code_migration.core.rollback import TimeMachineRollback
 from code_migration.core.compliance import PIIDetector, AuditReporter
 
 
+@pytest.mark.slow
+@pytest.mark.integration
 class TestFullMigrationWorkflow:
     """Test complete migration workflow integration."""
     

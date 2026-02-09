@@ -13,6 +13,7 @@ import psutil
 import os
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
+from typing import Optional
 
 from code_migration.core.security import SafeCodeAnalyzer
 from code_migration.core.confidence import MigrationConfidenceAnalyzer
@@ -21,78 +22,9 @@ from code_migration.core.rollback import TimeMachineRollback
 from code_migration.core.compliance import PIIDetector
 
 
-class TestLargeCodebasePerformance:
-    """Test performance with large codebases."""
-    
-    @pytest.fixture
-    def large_project(self):
-        """Create a large project for performance testing."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            project_path = Path(temp_dir) / "large-project"
-            project_path.mkdir()
-            
-            # Create project structure
-            dirs = [
-                "src/components",
-                "src/utils",
-                "src/services",
-                "src/hooks",
-                "src/store",
-                "src/api",
-                "tests/unit",
-                "tests/integration",
-                "docs/api",
-                "config",
-                "scripts",
-                "build",
-                "assets/css",
-                "assets/images",
-                "assets/fonts"
-            ]
-            
-            for dir_path in dirs:
-                (project_path / dir_path).mkdir(parents=True)
-            
-            # Generate many files
-            file_count = 1000
-            
-            with ThreadPoolExecutor(max_workers=10) as executor:
-                futures = []
-                
-                for i in range(file_count):
-                    future = executor.submit(
-                        self._create_test_file,
-                        project_path,
-                        i
-                    )
-                    futures.append(future)
-                
-                # Wait for all files to be created
-                for future in futures:
-                    future.result()
-            
-            yield project_path
-    
-    def _create_test_file(self, project_path, index):
-        """Create a test file with realistic content."""
-        file_types = [
-            ("src/components", f"Component{index}.jsx", self._react_component_content),
-            ("src/utils", f"util{index}.js", self._javascript_util_content),
-            ("src/services", f"service{index}.py", self._python_service_content),
-            ("src/hooks", f"hook{index}.js", self._react_hook_content),
-            ("tests/unit", f"test{index}.js", self._test_content),
-            ("config", f"config{index}.yaml", self._config_content),
-        ]
-        
-        dir_path, filename, content_func = file_types[index % len(file_types)]
-        full_path = project_path / dir_path / filename
-        
-        content = content_func(index)
-        full_path.write_text(content)
-    
-    def _react_component_content(self, index):
-        """Generate React component content."""
-        return f"""
+def _react_component_content(index):
+    """Generate React component content."""
+    return f"""
 import React, {{ Component }} from 'react';
 import axios from 'axios';
 import {{ connect }} from 'react-redux';
@@ -155,7 +87,7 @@ class Component{index} extends Component {{
                 <pre>{{JSON.stringify(data, null, 2)}}</pre>
             </div>
         );
-        }}
+    }}
 }}
 
 const mapStateToProps = (state) => ({{
@@ -165,10 +97,11 @@ const mapStateToProps = (state) => ({{
 
 export default connect(mapStateToProps)(Component{index});
 """
-    
-    def _javascript_util_content(self, index):
-        """Generate JavaScript utility content."""
-        return f"""
+
+
+def _javascript_util_content(index):
+    """Generate JavaScript utility content."""
+    return f"""
 // Utility functions for module {index}
 
 export const formatDate = (date) => {{
@@ -231,10 +164,11 @@ export const measurePerformance = (name, fn) => {{
     return result;
 }};
 """
-    
-    def _python_service_content(self, index):
-        """Generate Python service content."""
-        return f'''
+
+
+def _python_service_content(index):
+    """Generate Python service content."""
+    return f'''
 # Service module {index}
 
 import asyncio
@@ -311,10 +245,11 @@ class Service{index}:
 # Singleton instance
 service_{index} = Service{index}()
 '''
-    
-    def _react_hook_content(self, index):
-        """Generate React hook content."""
-        return f"""
+
+
+def _react_hook_content(index):
+    """Generate React hook content."""
+    return f"""
 import {{ useState, useEffect, useCallback }} from 'react';
 import {{ useSelector, useDispatch }} from 'react-redux';
 
@@ -367,10 +302,11 @@ export const useHook{index} = (initialValue) => {{
     }};
 }};
 """
-    
-    def _test_content(self, index):
-        """Generate test content."""
-        return f"""
+
+
+def _test_content(index):
+    """Generate test content."""
+    return f"""
 import React from 'react';
 import {{ render, screen }} from '@testing-library/react';
 import Component{index} from '../src/components/Component{index}';
@@ -408,11 +344,13 @@ describe('Component{index}', () => {{
         await screen.findByText('Test Data');
         expect(screen.getByText('test')).toBeInTheDocument();
     }});
-""";
-    
-    def _config_content(self, index):
-        """Generate configuration content."""
-        return f"""
+}})
+"""
+
+
+def _config_content(index):
+    """Generate configuration content."""
+    return f"""
 # Configuration file {index}
 
 app:
@@ -453,6 +391,112 @@ security:
   encryption_key: "encryption-key-{index}"
   session_timeout: 1800
 """
+
+
+def _create_test_file(project_path, index):
+    """Create a test file with realistic content."""
+    file_types = [
+        ("src/components", f"Component{index}.jsx", _react_component_content),
+        ("src/utils", f"util{index}.js", _javascript_util_content),
+        ("src/services", f"service{index}.py", _python_service_content),
+        ("src/hooks", f"hook{index}.js", _react_hook_content),
+        ("tests/unit", f"test{index}.js", _test_content),
+        ("config", f"config{index}.yaml", _config_content),
+    ]
+    
+    dir_path, filename, content_func = file_types[index % len(file_types)]
+    full_path = project_path / dir_path / filename
+    
+    content = content_func(index)
+    full_path.write_text(content)
+
+
+@pytest.fixture(scope="module")
+def large_project():
+    """Create a large project for performance testing."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        project_path = Path(temp_dir) / "large-project"
+        project_path.mkdir()
+        
+        # Create project structure
+        dirs = [
+            "src/components",
+            "src/utils",
+            "src/services",
+            "src/hooks",
+            "src/store",
+            "src/api",
+            "tests/unit",
+            "tests/integration",
+            "docs/api",
+            "config",
+            "scripts",
+            "build",
+            "assets/css",
+            "assets/images",
+            "assets/fonts"
+        ]
+        
+        for dir_path in dirs:
+            (project_path / dir_path).mkdir(parents=True)
+        
+        # Generate many files
+        file_count = 1000
+        
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            futures = []
+            
+            for i in range(file_count):
+                future = executor.submit(
+                    _create_test_file,
+                    project_path,
+                    i
+                )
+                futures.append(future)
+            
+            # Wait for all files to be created
+            for future in futures:
+                future.result()
+        
+        yield project_path
+
+
+@pytest.fixture(scope="module")
+def medium_project():
+    """Create a medium-sized project for regression testing."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        project_path = Path(temp_dir) / "medium-project"
+        project_path.mkdir()
+        
+        # Create medium project structure
+        dirs = ["src/components", "src/utils", "src/services", "tests"]
+        for dir_path in dirs:
+            (project_path / dir_path).mkdir(parents=True)
+        
+        # Create 100 files
+        for i in range(100):
+            if i % 3 == 0:
+                dir_path = "src/components"
+                filename = f"Component{i}.jsx"
+                content = f"// React component {i}\nexport default () => <div>Component {i}</div>;"
+            elif i % 3 == 1:
+                dir_path = "src/utils"
+                filename = f"util{i}.js"
+                content = f"// Utility {i}\nexport const helper{i} = () => {{ return {i}; }};"
+            else:
+                dir_path = "src/services"
+                filename = f"service{i}.py"
+                content = f"# Service {i}\nclass Service{i}:\n    def method(self):\n        return {i}"
+            
+            (project_path / dir_path / filename).write_text(content)
+        
+        yield project_path
+
+
+@pytest.mark.performance
+@pytest.mark.slow
+class TestLargeCodebasePerformance:
+    """Test performance with large codebases."""
     
     def test_safe_code_analyzer_performance(self, large_project):
         """Test SafeCodeAnalyzer performance with large codebase."""
@@ -481,29 +525,28 @@ security:
     
     def test_confidence_analyzer_performance(self, large_project):
         """Test MigrationConfidenceAnalyzer performance."""
-        analyzer = MigrationConfidenceAnalyzer(large_project)
-        
-        # Measure confidence analysis time
-        start_time = time.time()
-        confidence = analyzer.calculate_confidence("react-hooks", team_experience=70)
-        end_time = time.time()
-        
-        analysis_time = end_time - start_time
-        
-        # Verify results
-        assert 0 <= confidence.overall_score <= 100
-        assert confidence.risk_level in ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']
-        assert confidence.estimated_hours > 0
-        assert confidence.estimated_cost > 0
-        
-        # Performance assertions
-        assert analysis_time < 60.0  # Should complete within 1 minute
-        
-        print(f"ConfidenceAnalyzer completed in {analysis_time:.2f}s with score {confidence.overall_score}")
+        with MigrationConfidenceAnalyzer(large_project, allowed_base=large_project.parent) as analyzer:
+            # Measure confidence analysis time
+            start_time = time.time()
+            confidence = analyzer.calculate_confidence("react-hooks", team_experience=70)
+            end_time = time.time()
+            
+            analysis_time = end_time - start_time
+            
+            # Verify results
+            assert 0 <= confidence.overall_score <= 100
+            assert confidence.risk_level in ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']
+            assert confidence.estimated_hours > 0
+            assert confidence.estimated_cost > 0
+            
+            # Performance assertions
+            assert analysis_time < 60.0  # Should complete within 1 minute
+            
+            print(f"ConfidenceAnalyzer completed in {analysis_time:.2f}s with score {confidence.overall_score}")
     
     def test_visual_planner_performance(self, large_project):
         """Test VisualMigrationPlanner performance."""
-        planner = VisualMigrationPlanner(large_project)
+        planner = VisualMigrationPlanner(large_project, allowed_base=large_project.parent)
         
         # Measure graph building time
         start_time = time.time()
@@ -533,65 +576,78 @@ security:
     
     def test_rollback_performance(self, large_project):
         """Test TimeMachineRollback performance."""
-        rollback = TimeMachineRollback(large_project)
-        
-        # Measure checkpoint creation time
-        start_time = time.time()
-        checkpoint_id = rollback.create_checkpoint("Performance test checkpoint")
-        end_time = time.time()
-        
-        checkpoint_time = end_time - start_time
-        
-        # Verify checkpoint was created
-        assert checkpoint_id is not None
-        checkpoints = rollback.list_checkpoints()
-        assert len(checkpoints) > 0
-        
-        # Measure rollback time
-        start_time = time.time()
-        rollback_result = rollback.rollback(checkpoint_id)
-        end_time = time.time()
-        
-        rollback_time = end_time - start_time
-        
-        # Verify rollback
-        assert rollback_result['success'] is True
-        assert rollback_result['files_restored'] > 0
-        
-        # Performance assertions
-        assert checkpoint_time < 60.0  # Checkpoint within 1 minute
-        assert rollback_time < 30.0   # Rollback within 30 seconds
-        
-        print(f"Checkpoint creation: {checkpoint_time:.2f}s, Rollback: {rollback_time:.2f}s")
-        print(f"Restored {rollback_result['files_restored']} files")
+        with TimeMachineRollback(large_project, allowed_base=large_project.parent) as rollback:
+            # Measure checkpoint creation time
+            start_time = time.time()
+            checkpoint_id = rollback.create_checkpoint("Performance test checkpoint")
+            end_time = time.time()
+            
+            checkpoint_time = end_time - start_time
+            
+            # Verify checkpoint was created
+            assert checkpoint_id is not None
+            checkpoints = rollback.list_checkpoints()
+            assert len(checkpoints) > 0
+            
+            # MODIFY A FILE TO ENSURE ROLLBACK HAS WORK TO DO
+            python_files = list(large_project.rglob("src/services/*.py"))
+            if not python_files:
+                python_files = list(large_project.rglob("*.py"))
+            
+            test_file = python_files[0]
+            original_content = test_file.read_text()
+            test_file.write_text(original_content + "\n# NEW LINE\n")
+            
+            # Measure rollback time
+            start_time = time.time()
+            rollback_result = rollback.rollback(checkpoint_id)
+            end_time = time.time()
+            
+            rollback_time = end_time - start_time
+            
+            # Verify rollback
+            assert rollback_result['success'] is True
+            assert rollback_result['files_restored'] > 0
+            
+            # Verify file was restored
+            assert test_file.read_text() == original_content
+            
+            # Performance assertions
+            assert checkpoint_time < 60.0  # Checkpoint within 1 minute
+            assert rollback_time < 30.0   # Rollback within 30 seconds
+            
+            print(f"Checkpoint creation: {checkpoint_time:.2f}s, Rollback: {rollback_time:.2f}s")
+            print(f"Restored {rollback_result['files_restored']} files")
+            
+            # Explicit cleanup for Windows permission issues
+            rollback.close()
     
     def test_pii_detector_performance(self, large_project):
         """Test PIIDetector performance."""
-        detector = PIIDetector(large_project)
-        
-        # Add some PII to test files
-        test_files = list(large_project.rglob('*.py'))[:10]
-        for file_path in test_files:
-            content = file_path.read_text()
-            content += f'\n# Test PII\nemail = "test{file_path.stem}@example.com"\nphone = "555-123-4567"\n'
-            file_path.write_text(content)
-        
-        # Measure scan time
-        start_time = time.time()
-        results = detector.scan_directory()
-        end_time = time.time()
-        
-        scan_time = end_time - start_time
-        
-        # Verify results
-        assert results['files_scanned'] > 0
-        assert results['total_findings'] >= 20  # Should find the test PII
-        
-        # Performance assertions
-        assert scan_time < 60.0  # Should complete within 1 minute
-        
-        print(f"PII scan completed in {scan_time:.2f}s")
-        print(f"Scanned {results['files_scanned']} files, found {results['total_findings']} PII instances")
+        with PIIDetector(large_project) as detector:
+            # Add some PII to test files
+            test_files = list(large_project.rglob('*.py'))[:10]
+            for file_path in test_files:
+                content = file_path.read_text()
+                content += f'\n# Test PII\nemail = "test{file_path.stem}@example.com"\nphone = "555-123-4567"\n'
+                file_path.write_text(content)
+            
+            # Measure scan time
+            start_time = time.time()
+            results = detector.scan_directory()
+            end_time = time.time()
+            
+            scan_time = end_time - start_time
+            
+            # Verify results
+            assert results['files_scanned'] > 0
+            assert results['total_findings'] >= 20  # Should find the test PII
+            
+            # Performance assertions
+            assert scan_time < 60.0  # Should complete within 1 minute
+            
+            print(f"PII scan completed in {scan_time:.2f}s")
+            print(f"Scanned {results['files_scanned']} files, found {results['total_findings']} PII instances")
     
     def test_concurrent_analysis(self, large_project):
         """Test concurrent analysis performance."""
@@ -640,7 +696,7 @@ security:
         
         # Run multiple analyses
         analyzer = SafeCodeAnalyzer()
-        planner = VisualMigrationPlanner(large_project)
+        planner = VisualMigrationPlanner(large_project, allowed_base=large_project.parent)
         
         # Analyze multiple times
         for i in range(5):
@@ -683,39 +739,10 @@ security:
         print(f"Large file analysis: {analysis_time:.2f}s for {result['line_count']} lines")
 
 
+@pytest.mark.performance
+@pytest.mark.slow
 class TestPerformanceRegression:
     """Performance regression tests."""
-    
-    @pytest.fixture
-    def medium_project(self):
-        """Create a medium-sized project for regression testing."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            project_path = Path(temp_dir) / "medium-project"
-            project_path.mkdir()
-            
-            # Create medium project structure
-            dirs = ["src/components", "src/utils", "src/services", "tests"]
-            for dir_path in dirs:
-                (project_path / dir_path).mkdir(parents=True)
-            
-            # Create 100 files
-            for i in range(100):
-                if i % 3 == 0:
-                    dir_path = "src/components"
-                    filename = f"Component{i}.jsx"
-                    content = f"// React component {i}\nexport default () => <div>Component {i}</div>;"
-                elif i % 3 == 1:
-                    dir_path = "src/utils"
-                    filename = f"util{i}.js"
-                    content = f"// Utility {i}\nexport const helper{i} = () => {{ return {i}; }};"
-                else:
-                    dir_path = "src/services"
-                    filename = f"service{i}.py"
-                    content = f"# Service {i}\nclass Service{i}:\n    def method(self):\n        return {i}"
-                
-                (project_path / dir_path / filename).write_text(content)
-            
-            yield project_path
     
     def test_analysis_time_regression(self, medium_project):
         """Test that analysis time doesn't regress."""
