@@ -63,7 +63,12 @@ class PathSanitizer:
         
         # Resolve to canonical absolute path
         try:
-            abs_path = Path(path).resolve(strict=True)
+            # If path is absolute, use it. If relative, join with allowed_base
+            path_obj = Path(path)
+            if path_obj.is_absolute():
+                abs_path = path_obj.resolve(strict=True)
+            else:
+                abs_path = (Path(allowed_base) / path).resolve(strict=True)
         except (OSError, RuntimeError) as e:
             raise SecurityError(f"Path resolution failed: {e}")
         
@@ -131,7 +136,7 @@ class PathSanitizer:
                 return False
         
         # No leading/trailing spaces or dots
-        if filename.strip() != filename:
+        if filename.strip() != filename or filename.endswith('.'):
             return False
         
         # Not reserved names (Windows)

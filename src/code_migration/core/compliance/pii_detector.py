@@ -44,7 +44,7 @@ class PIIDetector:
             'regulation': 'GDPR'
         },
         'phone': {
-            'pattern': r'\b(?:\+?1[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})\b',
+            'pattern': r'(?<!\w)(?:\+?1[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})\b',
             'severity': 'MEDIUM',
             'confidence': 'MEDIUM',
             'regulation': 'GDPR'

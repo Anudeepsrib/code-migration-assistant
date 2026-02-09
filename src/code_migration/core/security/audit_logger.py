@@ -308,7 +308,7 @@ class SecurityAuditLogger:
                         if len(results) >= limit:
                             break
                             
-                    except json.JSONDecodeError:
+                    except (json.JSONDecodeError, ValueError):
                         continue
                         
         except FileNotFoundError:

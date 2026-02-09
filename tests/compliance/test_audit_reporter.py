@@ -6,7 +6,7 @@ Tests SOC2, GDPR, HIPAA compliance reporting capabilities.
 
 import pytest
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from code_migration.core.compliance import AuditReporter
@@ -31,11 +31,11 @@ class TestAuditReporter:
             audit_log = log_dir / 'security_audit.jsonl'
             
             sample_events = [
-                '{"event_id":"abc123","event_type":"FILE_ACCESS","timestamp_utc":"2025-01-01T10:00:00","user":"user1","action":"READ","resource":"test.py","result":"SUCCESS"}',
-                '{"event_id":"def456","event_type":"MIGRATION_EVENT","timestamp_utc":"2025-01-01T11:00:00","user":"user1","action":"START","resource":"./project","result":"SUCCESS","details":{"migration_type":"react-hooks"}}',
-                '{"event_id":"ghi789","event_type":"SECURITY_VIOLATION","timestamp_utc":"2025-01-01T12:00:00","user":"user2","action":"VIOLATION","resource":"test.py","result":"BLOCKED","details":{"violation_type":"PATH_TRAVERSAL"}}',
-                '{"event_id":"jkl012","event_type":"FILE_ACCESS","timestamp_utc":"2025-01-01T13:00:00","user":"user1","action":"WRITE","resource":"test.py","result":"SUCCESS","details":{"file_size":1024}}',
-                '{"event_id":"mno345","event_type":"MIGRATION_EVENT","timestamp_utc":"2025-01-01T14:00:00","user":"user1","action":"COMPLETE","resource":"./project","result":"SUCCESS","details":{"migration_type":"react-hooks","files_migrated":10}}'
+                '{"event_id":"abc123","event_type":"FILE_ACCESS","timestamp_utc":"2025-01-01T10:00:00+00:00","user":"user1","action":"READ","resource":"test.py","result":"SUCCESS"}',
+                '{"event_id":"def456","event_type":"MIGRATION_EVENT","timestamp_utc":"2025-01-01T11:00:00+00:00","user":"user1","action":"START","resource":"./project","result":"SUCCESS","details":{"migration_type":"react-hooks"}}',
+                '{"event_id":"ghi789","event_type":"SECURITY_VIOLATION","timestamp_utc":"2025-01-01T12:00:00+00:00","user":"user2","action":"VIOLATION","resource":"test.py","result":"BLOCKED","details":{"violation_type":"PATH_TRAVERSAL"}}',
+                '{"event_id":"jkl012","event_type":"FILE_ACCESS","timestamp_utc":"2025-01-01T13:00:00+00:00","user":"user1","action":"WRITE","resource":"test.py","result":"SUCCESS","details":{"file_size":1024}}',
+                '{"event_id":"mno345","event_type":"MIGRATION_EVENT","timestamp_utc":"2025-01-01T14:00:00+00:00","user":"user1","action":"COMPLETE","resource":"./project","result":"SUCCESS","details":{"migration_type":"react-hooks","files_migrated":10}}'
             ]
             
             audit_log.write_text('\n'.join(sample_events))
@@ -52,7 +52,7 @@ class TestAuditReporter:
     def test_soc2_report_generation(self, reporter):
         """Test SOC2 compliance report generation."""
         
-        end_date = datetime(2025, 1, 1, 15, 0, 0)
+        end_date = datetime(2025, 1, 1, 15, 0, 0, tzinfo=timezone.utc)
         start_date = end_date - timedelta(days=90)
         
         report = reporter.generate_soc2_report(start_date, end_date)
@@ -92,7 +92,7 @@ class TestAuditReporter:
     def test_gdpr_report_generation(self, reporter):
         """Test GDPR compliance report generation."""
         
-        end_date = datetime(2025, 1, 1, 15, 0, 0)
+        end_date = datetime(2025, 1, 1, 15, 0, 0, tzinfo=timezone.utc)
         start_date = end_date - timedelta(days=90)
         
         report = reporter.generate_gdpr_report(start_date, end_date)
@@ -135,7 +135,7 @@ class TestAuditReporter:
     def test_hipaa_report_generation(self, reporter):
         """Test HIPAA compliance report generation."""
         
-        end_date = datetime(2025, 1, 1, 15, 0, 0)
+        end_date = datetime(2025, 1, 1, 15, 0, 0, tzinfo=timezone.utc)
         start_date = end_date - timedelta(days=90)
         
         report = reporter.generate_hipaa_report(start_date, end_date)
@@ -172,7 +172,7 @@ class TestAuditReporter:
     def test_security_audit_report_generation(self, reporter):
         """Test security audit report generation."""
         
-        end_date = datetime(2025, 1, 1, 15, 0, 0)
+        end_date = datetime(2025, 1, 1, 15, 0, 0, tzinfo=timezone.utc)
         start_date = end_date - timedelta(days=30)
         
         report = reporter.generate_security_audit_report(start_date, end_date)
@@ -257,8 +257,8 @@ class TestAuditReporter:
         """Test date range filtering in reports."""
         
         # Test with specific date range
-        end_date = datetime(2025, 1, 1, 12, 0, 0)  # Noon
-        start_date = datetime(2025, 1, 1, 10, 0, 0)  # 2 hours earlier
+        end_date = datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+        start_date = datetime(2025, 1, 1, 10, 0, 0, tzinfo=timezone.utc)
         
         report = reporter.generate_soc2_report(start_date, end_date)
         
@@ -267,8 +267,8 @@ class TestAuditReporter:
         assert summary['total_events'] >= 0  # Should have some events
         
         # Test with wider date range
-        wide_end = datetime(2025, 1, 2, 0, 0, 0)
-        wide_start = datetime(2024, 12, 1, 0, 0, 0)
+        wide_end = datetime(2025, 1, 2, 0, 0, 0, tzinfo=timezone.utc)
+        wide_start = datetime(2024, 12, 1, 0, 0, 0, tzinfo=timezone.utc)
         
         wide_report = reporter.generate_soc2_report(wide_start, wide_end)
         wide_summary = wide_report['summary']
@@ -324,7 +324,7 @@ class TestAuditReporter:
             '{"event_id":"abc123","event_type":"FILE_ACCESS","timestamp_utc":"invalid-date","user":"user1","action":"READ","resource":"test.py","result":"SUCCESS"}',
             'not a json line',
             '{"incomplete":"json"',
-            '{"event_id":"def456","event_type":"MIGRATION_EVENT","timestamp_utc":"2025-01-01T11:00:00","user":"user1","action":"START","resource":"./project","result":"SUCCESS"}'
+            '{"event_id":"def456","event_type":"MIGRATION_EVENT","timestamp_utc":"2025-01-01T11:00:00+00:00","user":"user1","action":"START","resource":"./project","result":"SUCCESS"}'
         ]
         
         audit_log.write_text('\n'.join(malformed_entries))
@@ -395,9 +395,9 @@ class TestAuditReporterEdgeCases:
             audit_log = log_dir / 'security_audit.jsonl'
             
             edge_case_events = [
-                '{"event_id":"edge1","event_type":"FILE_ACCESS","timestamp_utc":"2025-01-01T23:59:59","user":"user1","action":"READ","resource":"test.py","result":"SUCCESS","details":{"file_size":0}}',
-                '{"event_id":"edge2","event_type":"SECURITY_VIOLATION","timestamp_utc":"2025-01-01T00:00:00","user":"user2","action":"VIOLATION","resource":"../../../etc/passwd","result":"BLOCKED","details":{"violation_type":"PATH_TRAVERSAL","severity":"CRITICAL"}}',
-                '{"event_id":"edge3","event_type":"MIGRATION_EVENT","timestamp_utc":"2025-01-01T12:30:45","user":"user1","action":"COMPLETE","resource":"./project","result":"SUCCESS","details":{"migration_type":"react-hooks","files_migrated":0,"errors":[]}}'
+                '{"event_id":"edge1","event_type":"FILE_ACCESS","timestamp_utc":"2025-01-01T23:59:59+00:00","user":"user1","action":"READ","resource":"test.py","result":"SUCCESS","details":{"file_size":0}}',
+                '{"event_id":"edge2","event_type":"SECURITY_VIOLATION","timestamp_utc":"2025-01-01T00:00:00+00:00","user":"user2","action":"VIOLATION","resource":"../../../etc/passwd","result":"BLOCKED","details":{"violation_type":"PATH_TRAVERSAL","severity":"CRITICAL"}}',
+                '{"event_id":"edge3","event_type":"MIGRATION_EVENT","timestamp_utc":"2025-01-01T12:30:45+00:00","user":"user1","action":"COMPLETE","resource":"./project","result":"SUCCESS","details":{"migration_type":"react-hooks","files_migrated":0,"errors":[]}}'
             ]
             
             audit_log.write_text('\n'.join(edge_case_events))
@@ -415,15 +415,15 @@ class TestAuditReporterEdgeCases:
         """Test boundary conditions for date ranges."""
         
         # Test with very narrow date range (should include few events)
-        narrow_start = datetime(2025, 1, 1, 12, 30, 0)
-        narrow_end = datetime(2025, 1, 1, 12, 31, 0)
+        narrow_start = datetime(2025, 1, 1, 12, 30, 0, tzinfo=timezone.utc)
+        narrow_end = datetime(2025, 1, 1, 12, 31, 0, tzinfo=timezone.utc)
         
         narrow_report = reporter.generate_soc2_report(narrow_start, narrow_end)
         assert narrow_report['summary']['total_events'] >= 0
         
         # Test with very wide date range (should include all events)
-        wide_start = datetime(2024, 1, 1, 0, 0, 0)
-        wide_end = datetime(2025, 12, 31, 23, 59, 59)
+        wide_start = datetime(2024, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+        wide_end = datetime(2025, 12, 31, 23, 59, 59, tzinfo=timezone.utc)
         
         wide_report = reporter.generate_soc2_report(wide_start, wide_end)
         assert wide_report['summary']['total_events'] >= narrow_report['summary']['total_events']
@@ -446,8 +446,8 @@ class TestAuditReporterEdgeCases:
         audit_log = temp_project_dir / '.migration-logs' / 'security_audit.jsonl'
         
         unicode_events = [
-            '{"event_id":"unicode1","event_type":"FILE_ACCESS","timestamp_utc":"2025-01-01T10:00:00","user":"用户1","action":"READ","resource":"测试.py","result":"SUCCESS"}',
-            '{"event_id":"unicode2","event_type":"SECURITY_VIOLATION","timestamp_utc":"2025-01-01T11:00:00","user":"пользователь","action":"VIOLATION","resource":"malicious.py","result":"BLOCKED","details":{"violation_type":"INJECTION_ATTEMPT"}}'
+            '{"event_id":"unicode1","event_type":"FILE_ACCESS","timestamp_utc":"2025-01-01T10:00:00+00:00","user":"用户1","action":"READ","resource":"测试.py","result":"SUCCESS"}',
+            '{"event_id":"unicode2","event_type":"SECURITY_VIOLATION","timestamp_utc":"2025-01-01T11:00:00+00:00","user":"пользователь","action":"VIOLATION","resource":"malicious.py","result":"BLOCKED","details":{"violation_type":"INJECTION_ATTEMPT"}}'
         ]
         
         audit_log.write_text('\n'.join(unicode_events), encoding='utf-8')
@@ -470,7 +470,7 @@ class TestAuditReporterEdgeCases:
             event = {
                 "event_id": f"event_{i}",
                 "event_type": "FILE_ACCESS",
-                "timestamp_utc": "2025-01-01T10:00:00",
+                "timestamp_utc": "2025-01-01T10:00:00+00:00",
                 "user": f"user{i % 10}",
                 "action": "READ",
                 "resource": f"file_{i}.py",

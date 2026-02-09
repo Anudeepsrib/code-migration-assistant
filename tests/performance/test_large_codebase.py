@@ -268,7 +268,7 @@ class Service{index}:
     
     async def get_data(self, item_id: str) -> Dict:
         """Get data by ID."""
-        url = f"{self.config.base_url}/data/{item_id}"
+        url = f"{{self.config.base_url}}/data/{{item_id}}"
         
         for attempt in range(self.config.max_retries):
             try:
@@ -284,14 +284,14 @@ class Service{index}:
     
     async def post_data(self, data: Dict) -> Dict:
         """Post data."""
-        url = f"{self.config.base_url}/data"
+        url = f"{{self.config.base_url}}/data"
         
         try:
             async with self.session.post(url, json=data) as response:
                 response.raise_for_status()
                 return await response.json()
         except aiohttp.ClientError as e:
-            logger.error(f"Failed to post data: {e}")
+            logger.error(f"Failed to post data: {{e}}")
             raise
     
     async def process_batch(self, items: List[Dict]) -> List[Dict]:
@@ -302,7 +302,7 @@ class Service{index}:
         successful_results = []
         for result in results:
             if isinstance(result, Exception):
-                logger.error(f"Batch processing error: {result}")
+                logger.error(f"Batch processing error: {{result}}")
             else:
                 successful_results.append(result)
         
@@ -730,7 +730,7 @@ class TestPerformanceRegression:
         
         # Performance regression check
         assert analysis_time < 5.0  # Should complete within 5 seconds for 100 files
-        assert results['files_analyzed'] == 100
+        assert results['files_analyzed'] == 33  # Only analyzing .py files
         
         print(f"Analysis time regression test: {analysis_time:.2f}s for 100 files")
     

@@ -174,8 +174,8 @@ class CodeValidator:
         if not input_str:
             return ""
         
-        # Remove control characters
-        sanitized = re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '', input_str)
+        # Remove control characters (including newlines/tabs for safe logging)
+        sanitized = re.sub(r'[\x00-\x1F\x7F]', '', input_str)
         
         # Limit length
         if len(sanitized) > 200:

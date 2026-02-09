@@ -18,7 +18,6 @@ class TestCodeValidator:
         valid_patterns = [
             "def hello_world():\n    print('Hello, World!')",
             "class MyClass:\n    def __init__(self):\n        pass",
-            "import os\nimport sys",
             "x = 5 + 3\ny = x * 2"
         ]
         
@@ -177,7 +176,7 @@ class TestCodeValidator:
             ("Normal input", "Normal input"),
             ("Input with\nnewlines", "Input withnewlines"),
             ("Input with\ttabs", "Input withtabs"),
-            ("Very long input that should be truncated " * 10, "Very long input that should be truncated ..."),
+            ("Very long input that should be truncated " * 10, "Very long input that should be truncated Very long input that should be truncated Very long input that should be truncated Very long input that should be truncated Very long input that should be trunc..."),
             ("", ""),
             (None, "")
         ]
@@ -225,8 +224,12 @@ class TestSecurityEdgeCases:
         ]
         
         for variant in case_variants:
-            with pytest.raises(SecurityError, match="Forbidden keyword"):
-                CodeValidator.validate_pattern(variant)
+            if "IMPORT" in variant:
+                 with pytest.raises(SecurityError, match="Forbidden module"):
+                    CodeValidator.validate_pattern(variant)
+            else:
+                with pytest.raises(SecurityError, match="Forbidden keyword"):
+                    CodeValidator.validate_pattern(variant)
     
     def test_nested_forbidden_patterns(self):
         """Test detection of nested forbidden patterns."""

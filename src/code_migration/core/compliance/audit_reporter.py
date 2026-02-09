@@ -184,7 +184,7 @@ class AuditReporter:
             HIPAA compliance report
         """
         if end_date is None:
-            end_date = datetime.utcnow()
+            end_date = datetime.now(timezone.utc)
         if start_date is None:
             start_date = end_date - timedelta(days=90)
         
@@ -241,7 +241,7 @@ class AuditReporter:
             Security audit report
         """
         if end_date is None:
-            end_date = datetime.utcnow()
+            end_date = datetime.now(timezone.utc)
         if start_date is None:
             start_date = end_date - timedelta(days=30)
         

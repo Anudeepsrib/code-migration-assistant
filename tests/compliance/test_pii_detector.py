@@ -82,7 +82,7 @@ class SafeClass:
             
             yield project_path
     
-    def test_email_detection(self, detector):
+    def test_email_detection(self, detector, temp_project_dir):
         """Test email address detection."""
         
         findings = detector.scan_file(temp_project_dir / "user_profile.py")
@@ -348,7 +348,7 @@ class UnicodePII:
     def __init__(self):
         self.email = "用户@example.com"  # Unicode email
         self.name = "张三"  # Unicode name
-""")
+""", encoding='utf-8')
         
         findings = detector.scan_file(unicode_file)
         
