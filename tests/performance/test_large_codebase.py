@@ -740,7 +740,6 @@ class TestLargeCodebasePerformance:
 
 
 @pytest.mark.performance
-@pytest.mark.slow
 class TestPerformanceRegression:
     """Performance regression tests."""
     
