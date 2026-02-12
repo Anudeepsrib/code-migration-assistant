@@ -128,12 +128,20 @@ pytest tests/security/
 # Run compliance tests
 pytest tests/compliance/
 
-# Run performance tests (WARNING: Takes significant time)
+# Run performance tests (WARNING: Takes significant time & memory)
 pytest tests/performance/
 
 # Run all tests
 pytest tests/
 ```
+
+### Test Configuration
+
+Tests are configured via `pytest.ini` with a **300-second timeout** per test (`--timeout=300`). Performance tests generate large temporary projects (1000+ files) and run compute-intensive analysis, so they require:
+
+- **8 GB+ RAM** — multiple analyzers run concurrently during stress tests
+- **Adequate CPU** — regex scanning and AST parsing across many files
+- **Sufficient timeout** — if tests time out on your CI runner, increase the timeout via `--timeout=600`
 
 ### Test Markers
 - `slow`: Tests that take a long time to execute (e.g., performance and complex integrations).

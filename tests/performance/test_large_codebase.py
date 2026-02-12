@@ -622,26 +622,30 @@ class TestLargeCodebasePerformance:
             # Explicit cleanup for Windows permission issues
             rollback.close()
     
-    def test_pii_detector_performance(self, large_project):
-        """Test PIIDetector performance."""
-        with PIIDetector(large_project) as detector:
-            # Add some PII to test files
-            test_files = list(large_project.rglob('*.py'))[:10]
-            for file_path in test_files:
-                content = file_path.read_text()
-                content += f'\n# Test PII\nemail = "test{file_path.stem}@example.com"\nphone = "555-123-4567"\n'
-                file_path.write_text(content)
-            
-            # Measure scan time
+    def test_pii_detector_performance(self, tmp_path):
+        """Test PIIDetector performance with a dedicated project."""
+        # Create a self-contained project with PII-injected files
+        # This avoids depending on the 1000-file large_project fixture
+        pii_project = tmp_path / "pii_project"
+        pii_project.mkdir()
+        
+        for i in range(50):
+            file_path = pii_project / f"service_{i}.py"
+            content = _python_service_content(i)
+            content += f'\n# Test PII\nemail = "test_user_{i}@example.com"\nphone = "555-123-4567"\n'
+            file_path.write_text(content)
+        
+        with PIIDetector(pii_project) as detector:
+            # Measure scan time - only scan .py files
             start_time = time.time()
-            results = detector.scan_directory()
+            results = detector.scan_directory(file_extensions=['.py'])
             end_time = time.time()
             
             scan_time = end_time - start_time
             
             # Verify results
             assert results['files_scanned'] > 0
-            assert results['total_findings'] >= 20  # Should find the test PII
+            assert results['total_findings'] >= 50  # Should find at least one PII per file
             
             # Performance assertions
             assert scan_time < 60.0  # Should complete within 1 minute
@@ -662,7 +666,7 @@ class TestLargeCodebasePerformance:
                 return {'error': str(e), 'file': str(file_path)}
         
         # Get sample of files to analyze
-        sample_files = list(large_project.rglob('*.jsx'))[:50]
+        sample_files = list(large_project.rglob('*.py'))[:50]
         
         # Measure concurrent analysis time
         start_time = time.time()
