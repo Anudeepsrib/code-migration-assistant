@@ -1,123 +1,158 @@
 # User Guide
 
+> **Code Migration Assistant** — Enterprise-grade, security-first code migration with AI-powered analysis.
+>
+> This guide covers everything from your first migration to advanced production deployments. For installation, see the [Installation Guide](INSTALLATION.md). For security details, see the [Security Policy](security/SECURITY.md).
+
+---
+
 ## Table of Contents
 
 1. [Quick Start](#quick-start)
-2. [Installation](#installation)
-3. [Basic Usage](#basic-usage)
-4. [Migration Types](#migration-types)
-5. [Advanced Features](#advanced-features)
-6. [Configuration](#configuration)
+2. [Command Reference](#command-reference)
+3. [Migration Types](#migration-types)
+4. [Advanced Features](#advanced-features)
+5. [Configuration](#configuration)
+6. [Python API](#python-api)
 7. [Troubleshooting](#troubleshooting)
 8. [Best Practices](#best-practices)
+
+---
 
 ## Quick Start
 
 ### Prerequisites
 
-- Python 3.8 or higher
-- Git (for rollback functionality)
-- 8GB+ RAM (for large codebases)
+| Requirement | Version | Notes |
+|-------------|---------|-------|
+| Python | 3.8+ | CPython recommended |
+| Git | 2.x+ | Required for rollback functionality |
+| RAM | 8 GB+ | Recommended for large codebases |
 
-### Installation
+> [!TIP]
+> See the [Installation Guide](INSTALLATION.md) for detailed platform-specific setup instructions.
+
+### Install
 
 ```bash
-# Clone the repository
 git clone https://github.com/anudeepsrib/code-migration-assistant.git
 cd code-migration-assistant
-
-# Install dependencies
 pip install -r requirements.txt
-pip install -r requirements-security.txt
-
-# Verify installation
+pip install -e .
 python -m code_migration --version
 ```
 
-### First Migration
+### Your First Migration
 
 ```bash
-# Analyze your project
+# 1. Analyze — understand the risk before you touch anything
 migrate analyze ./my-project --type react-hooks --confidence
 
-# Create visual plan
-migrate plan ./my-project --type react-hooks --output plan.html
+# 2. Plan — visualize dependencies and migration waves
+migrate visualize ./my-project --output migration-graph.html
 
-# Execute migration with safety
+# 3. Dry run — preview exactly what will change
+migrate run ./my-project --type react-hooks --dry-run
+
+# 4. Execute — migrate with automatic rollback on failure
 migrate run ./my-project --type react-hooks --auto-rollback
 ```
 
-## Installation
+---
 
-### System Requirements
+## Command Reference
 
-| Component | Minimum | Recommended |
-|------------|---------|-------------|
-| Python | 3.8 | 3.11 |
-| RAM | 4GB | 8GB+ |
-| Storage | 1GB | 5GB+ |
-| OS | Linux/macOS/Windows | Linux/macOS |
-
-### Dependencies
-
-#### Core Dependencies
-```bash
-pip install click rich pyyaml networkx
-```
-
-#### Security Dependencies
-```bash
-pip install bandit safety cryptography audit-log
-```
-
-#### Optional Dependencies
-```bash
-# For enhanced visualization
-pip install matplotlib seaborn
-
-# For advanced analysis
-pip install psutil memory-profiler
-
-# For development
-pip install pytest pytest-cov black isort mypy
-```
-
-### Docker Installation
+### Analysis
 
 ```bash
-# Pull the image
-docker pull code-migration-assistant:latest
+# Basic analysis
+migrate analyze ./project --type react-hooks
 
-# Run with mounted volume
-docker run -v /path/to/project:/project code-migration-assistant \
-  migrate analyze /project --type react-hooks
+# Detailed confidence analysis with risk breakdown
+migrate analyze ./project --type react-hooks --confidence --detailed
+
+# Risk assessment
+migrate analyze ./project --type react-hooks --risk-analysis
+
+# Export HTML report
+migrate analyze ./project --type react-hooks --report-html --output analysis.html
 ```
 
-### Development Installation
+### Visual Planning
 
 ```bash
-# Clone repository
-git clone https://github.com/anudeepsrib/code-migration-assistant.git
-cd code-migration-assistant
+# Interactive dependency graph (D3.js)
+migrate visualize ./project --output graph.html
 
-# Install in development mode
-pip install -e ".[dev]"
+# Migration plan with timeline
+migrate plan ./project --type react-hooks --timeline --output timeline.html
 
-# Run tests
-pytest tests/
-
-# Run security checks
-bandit -r src/code_migration/
-safety check
+# Interactive planning mode
+migrate plan ./project --type react-hooks --interactive
 ```
 
-## Basic Usage
+### Execution
 
-### Command Line Interface
+```bash
+# Dry run (preview changes, no files modified)
+migrate run ./project --type react-hooks --dry-run
 
-The Code Migration Assistant provides a comprehensive CLI for all operations.
+# Execute migration
+migrate run ./project --type react-hooks
 
-#### Basic Commands
+# Execute with automatic rollback on error
+migrate run ./project --type react-hooks --auto-rollback
+
+# Migrate specific files only
+migrate run ./src/components --type react-hooks --files Button.jsx,UserProfile.jsx
+```
+
+### Rollback
+
+```bash
+# Create a named checkpoint
+migrate checkpoint create "Before migration"
+
+# List all checkpoints
+migrate checkpoint list
+
+# Rollback to a checkpoint
+migrate rollback --to 20250208_143022
+
+# Surgical rollback (specific files only)
+migrate rollback --to 20250208_143022 --files src/components/Button.jsx
+
+# Preview rollback without applying
+migrate rollback --to 20250208_143022 --dry-run
+```
+
+> [!NOTE]
+> Checkpoints use Git-based snapshots with SHA-256 integrity verification. See [Time Machine Rollback](#time-machine-rollback) for details.
+
+### Compliance
+
+```bash
+# Scan for PII
+migrate compliance scan ./project --pii
+
+# Scan for secrets (API keys, tokens, passwords)
+migrate compliance scan ./project --secrets
+
+# Generate compliance reports (SOC2, GDPR, HIPAA)
+migrate compliance report --soc2 --gdpr --hipaa --output compliance/
+
+# Anonymize sensitive data
+migrate compliance anonymize ./project --output anonymized/
+```
+
+### AI Co-pilot
+
+```bash
+# Start interactive AI assistant
+migrate copilot ./my-project
+```
+
+### Utility
 
 ```bash
 # Show help
@@ -128,154 +163,47 @@ migrate --version
 
 # List available migration types
 migrate list-types
+
+# Check system status
+migrate status
+
+# Validate configuration
+migrate config validate
 ```
 
-#### Analysis Commands
-
-```bash
-# Basic analysis
-migrate analyze ./project --type react-hooks
-
-# Detailed confidence analysis
-migrate analyze ./project --type react-hooks --confidence --detailed
-
-# Risk assessment
-migrate analyze ./project --type react-hooks --risk-analysis
-
-# Generate HTML report
-migrate analyze ./project --type react-hooks --report-html --output analysis.html
-```
-
-#### Planning Commands
-
-```bash
-# Generate dependency graph
-migrate visualize ./project --output graph.html
-
-# Create migration plan
-migrate plan ./project --type react-hooks --output plan.html
-
-# Timeline planning
-migrate plan ./project --type react-hooks --timeline --output timeline.html
-
-# Interactive planning
-migrate plan ./project --type react-hooks --interactive
-```
-
-#### Execution Commands
-
-```bash
-# Dry run (preview changes)
-migrate run ./project --type react-hooks --dry-run
-
-# Execute migration
-migrate run ./project --type react-hooks
-
-# Execute with automatic rollback on error
-migrate run ./project --type react-hooks --auto-rollback
-
-# Execute specific files
-migrate run ./src/components --type react-hooks --files Button.jsx,UserProfile.jsx
-```
-
-#### Rollback Commands
-
-```bash
-# Create checkpoint
-migrate checkpoint create "Before migration"
-
-# List checkpoints
-migrate checkpoint list
-
-# Rollback to checkpoint
-migrate rollback --to 20250208_143022
-
-# Partial rollback
-migrate rollback --to 20250208_143022 --files src/components/Button.jsx
-
-# Rollback preview
-migrate rollback --to 20250208_143022 --dry-run
-```
-
-#### Compliance Commands
-
-```bash
-# Scan for PII
-migrate compliance scan ./project --pii
-
-# Scan for secrets
-migrate compliance scan ./project --secrets
-
-# Generate compliance report
-migrate compliance report --soc2 --gdpr --hipaa --output compliance/
-
-# Data anonymization
-migrate compliance anonymize ./project --output anonymized/
-```
-
-### Python API
-
-You can also use the migration assistant programmatically:
-
-```python
-from skills.code_migration.core.confidence import MigrationConfidenceAnalyzer
-from skills.code_migration.core.visualizer import VisualMigrationPlanner
-from skills.code_migration.core.rollback import TimeMachineRollback
-
-# Initialize components
-analyzer = MigrationConfidenceAnalyzer("./my-project")
-planner = VisualMigrationPlanner("./my-project")
-rollback = TimeMachineRollback("./my-project")
-
-# Analyze migration confidence
-confidence = analyzer.calculate_confidence("react-hooks", team_experience=70)
-print(f"Confidence Score: {confidence.overall_score}/100")
-print(f"Risk Level: {confidence.risk_level}")
-
-# Create visual plan
-planner.build_dependency_graph()
-waves = planner.calculate_migration_waves()
-planner.generate_d3_visualization("migration-graph.html")
-
-# Create checkpoint before migration
-checkpoint_id = rollback.create_checkpoint("Pre-migration backup")
-
-# Execute migration (your custom logic here)
-# ...
-
-# Rollback if needed
-if migration_failed:
-    rollback.rollback(checkpoint_id)
-```
+---
 
 ## Migration Types
 
 ### React Hooks Migration
 
-**Source**: React Class Components  
-**Target**: Functional Components with Hooks  
-**Confidence**: 85-95%
+| | |
+|---|---|
+| **Source** | React Class Components |
+| **Target** | Functional Components + Hooks |
+| **Confidence** | 85–95% |
+| **Status** | ✅ Enterprise |
 
 ```bash
 migrate analyze ./react-project --type react-hooks
 migrate run ./react-project --type react-hooks
 ```
 
-**Features**:
-- Automatic conversion of class components to functional components
-- Lifecycle method to hook conversion
-- State management migration
-- Context API integration
-- Testing updates
+**What gets transformed:**
+- Class components → functional components
+- `componentDidMount` / `componentDidUpdate` / `componentWillUnmount` → `useEffect`
+- `this.state` + `this.setState` → `useState`
+- Context consumers → `useContext`
+- Test files updated to match new component signatures
 
-**Example Transformation**:
+**Example:**
+
 ```jsx
-// Before
+// Before ─────────────────────────────────────
 class UserProfile extends Component {
     constructor(props) {
         super(props);
         this.state = { user: null, loading: true };
-        this.fetchUser = this.fetchUser.bind(this);
     }
     
     componentDidMount() {
@@ -294,7 +222,7 @@ class UserProfile extends Component {
     }
 }
 
-// After
+// After ──────────────────────────────────────
 const UserProfile = ({ id }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -315,68 +243,80 @@ const UserProfile = ({ id }) => {
 
 ### Vue 3 Migration
 
-**Source**: Vue 2 Options API  
-**Target**: Vue 3 Composition API  
-**Confidence**: 80-90%
+| | |
+|---|---|
+| **Source** | Vue 2 Options API |
+| **Target** | Vue 3 Composition API |
+| **Confidence** | 80–90% |
+| **Status** | ✅ Enterprise |
 
 ```bash
 migrate analyze ./vue-project --type vue3
 migrate run ./vue-project --type vue3
 ```
 
-**Features**:
-- Options API to Composition API conversion
-- Reactivity system migration
-- Lifecycle hooks update
-- TypeScript support
+**What gets transformed:**
+- Options API (`data`, `methods`, `computed`, `watch`) → Composition API (`ref`, `reactive`, `computed`, `watch`)
+- Lifecycle hooks → `onMounted`, `onUpdated`, `onUnmounted`
+- Reactivity system upgraded
 - Plugin system updates
+- Optional TypeScript support
 
 ### Python 3 Migration
 
-**Source**: Python 2.7  
-**Target**: Python 3.x  
-**Confidence**: 90-98%
+| | |
+|---|---|
+| **Source** | Python 2.7 |
+| **Target** | Python 3.x |
+| **Confidence** | 90–98% |
+| **Status** | ✅ Enterprise |
 
 ```bash
 migrate analyze ./python-project --type python3
 migrate run ./python-project --type python3
 ```
 
-**Features**:
-- Print statement conversion
-- Integer division handling
-- String encoding updates
-- Exception syntax changes
-- Library imports update
+**What gets transformed:**
+- `print` statements → `print()` function calls
+- Integer division behavior (`/` vs `//`)
+- `unicode` / `str` → unified `str`
+- Exception syntax (`except E, e:` → `except E as e:`)
+- Library imports updated to Python 3 equivalents
 
 ### TypeScript Migration
 
-**Source**: JavaScript  
-**Target**: TypeScript  
-**Confidence**: 70-85%
+| | |
+|---|---|
+| **Source** | JavaScript |
+| **Target** | TypeScript |
+| **Confidence** | 70–85% |
+| **Status** | 🧪 Beta |
 
 ```bash
 migrate analyze ./js-project --type typescript
 migrate run ./js-project --type typescript
 ```
 
-**Features**:
+**What gets transformed:**
 - Type inference and annotation
-- Interface generation
-- Config file creation
-- JSDoc to TypeScript conversion
+- Interface generation from usage patterns
+- `tsconfig.json` creation
+- JSDoc comments → TypeScript types
+
+---
 
 ## Advanced Features
 
-### Migration Confidence Analysis
+### Migration Confidence Analyzer
 
-Get detailed risk assessment and confidence scoring:
+Get a quantified risk assessment before committing to any migration:
 
 ```bash
 migrate analyze ./project --type react-hooks --confidence --detailed
 ```
 
-**Output Example**:
+**Output example:**
+
 ```
 🔍 Analyzing Migration Confidence...
 
@@ -403,87 +343,137 @@ Risk Factors:
 4. Add more tests for complex components
 ```
 
-### Visual Migration Planning
+The confidence score evaluates six dimensions:
+- **Test coverage** — are the migration targets well-tested?
+- **Code complexity** — cyclomatic complexity across all files
+- **Dependency health** — outdated, deprecated, or vulnerable packages
+- **Code quality** — linter warnings, dead code, duplication
+- **Breaking changes** — API surfaces at risk
+- **Team experience** — calibrated to your team's familiarity with the target
 
-Generate interactive dependency graphs and migration timelines:
+### Visual Migration Planner
+
+Interactive dependency visualization using D3.js and NetworkX:
 
 ```bash
-# Interactive dependency graph
+# Dependency graph
 migrate visualize ./project --output graph.html
 
-# Migration timeline with Gantt chart
+# Migration timeline (Gantt chart)
 migrate plan ./project --type react-hooks --timeline --output timeline.html
 ```
 
-**Features**:
-- Interactive D3.js dependency visualization
-- Zoom, pan, and drag capabilities
-- Migration wave calculation
-- File-level dependency analysis
-- Timeline scheduling with work calendars
+Features:
+- Zoom, pan, and drag on the interactive graph
+- Color-coded nodes by migration risk level
+- Topological sort produces ordered **migration waves** — leaf nodes first
+- Gantt chart export for project management tools
 
 ### Time Machine Rollback
 
-Advanced rollback with surgical precision:
+Git-based checkpoint system with surgical precision:
 
 ```bash
 # Create checkpoint
 migrate checkpoint create "Before major changes"
 
-# List all checkpoints
-migrate checkpoint list
-
 # Full rollback
 migrate rollback --to 20250208_143022
 
-# Partial rollback (specific files)
+# Partial rollback (specific files only)
 migrate rollback --to 20250208_143022 --files src/components/Button.jsx
 
-# Rollback preview
-migrate rollback --to 20250208_143022 --dry-run
+# Verify checkpoint integrity
+migrate checkpoint verify 20250208_143022
 ```
 
-**Features**:
-- Git-based checkpoints with integrity verification
-- Surgical file-level rollback
-- Conflict resolution
-- Incremental checkpoints
-- Automatic backup creation
+Features:
+- SHA-256 checksums on every snapshot
+- File-level surgical rollback
+- Automatic pre-migration checkpoints
+- Conflict detection and resolution
+
+### Live Migration Mode
+
+Production-safe migration with traffic management:
+
+```bash
+migrate live-migration ./project --type react-hooks --canary --auto-rollback
+```
+
+Features:
+- **Canary deployments** — gradual traffic splitting (5% → 25% → 100%)
+- **Health monitoring** — real-time endpoint checks
+- **Auto-rollback** — revert on error rate or latency spikes
+- **Structured metrics** — observability throughout
 
 ### Compliance Scanning
 
-Enterprise compliance with GDPR, HIPAA, SOC2:
+Enterprise compliance for regulated industries. See the [Security Policy](docs/security/SECURITY.md) for the full compliance framework.
 
 ```bash
-# Scan for PII and secrets
+# Full compliance scan
 migrate compliance scan ./project --pii --secrets
 
-# Generate compliance reports
+# Generate formatted reports
 migrate compliance report --soc2 --gdpr --hipaa --output compliance/
 
-# Data anonymization
+# Anonymize data
 migrate compliance anonymize ./project --output anonymized/
 ```
 
-**Features**:
-- PII detection (email, phone, SSN, credit cards)
-- PHI detection (medical records, patient data)
-- Secrets detection (API keys, passwords)
-- GDPR/HIPAA/SOC2 compliance reporting
-- Data masking and anonymization
+**PII patterns detected:** email, SSN, phone, credit card, passport, driver's license, IP address, date of birth, physical address
+
+**PHI patterns detected:** medical record numbers, ICD-9/10 diagnosis codes, patient IDs, CPT procedure codes, health insurance IDs
+
+**Regulations mapped:** GDPR, HIPAA, PCI-DSS, CCPA, SOC2
+
+### Cost Estimator & ROI Analyzer
+
+Data-driven migration budgeting for executive stakeholders:
+
+- Per-file and per-module cost estimates
+- Projected ROI with break-even timeline
+- Executive-ready summary reports
+- Resource allocation recommendations by sprint/phase
+
+### Test Generation Engine
+
+Automated test scaffolding for migrated code:
+
+```bash
+migrate generate-tests ./src/components --type react-hooks
+```
+
+- Unit test generation from function signatures and AST analysis
+- Integration test templates
+- Mock generation for external dependencies
+- Coverage tracking (line, branch, function)
+
+---
 
 ## Configuration
 
-### Configuration Files
+### Environment Variables
 
-#### Security Configuration
+Create a `.env` file in your project root or set via your shell:
 
-Create `config/security_policy.yaml`:
+```bash
+# Security
+MIGRATION_SECURITY_LEVEL="high"      # high | medium | low
+MIGRATION_AUDIT_LOGGING="true"       # Enable audit trail
+
+# Performance
+MIGRATION_MAX_WORKERS="4"            # Concurrent workers
+MIGRATION_TIMEOUT="300"              # Per-operation timeout (seconds)
+```
+
+### Security Policy (`config/security_policy.yaml`)
 
 ```yaml
 security:
   input_validation:
-    max_file_size: 10485760  # 10MB
+    max_file_size: 10485760  # 10 MB
     max_lines: 1000
     allowed_extensions: ['.py', '.js', '.jsx', '.ts', '.tsx', '.vue']
   
@@ -496,9 +486,7 @@ security:
     file_ops_per_minute: 100
 ```
 
-#### Compliance Configuration
-
-Create `config/compliance_rules.yaml`:
+### Compliance Rules (`config/compliance_rules.yaml`)
 
 ```yaml
 compliance:
@@ -515,9 +503,7 @@ compliance:
     encryption_required: true
 ```
 
-#### Migration Configuration
-
-Create `config/migration_rules.yaml`:
+### Migration Rules (`config/migration_rules.yaml`)
 
 ```yaml
 migrations:
@@ -532,89 +518,94 @@ migrations:
     typescript_support: false
 ```
 
-### Environment Variables
+---
 
-```bash
-# API Configuration
-export MIGRATION_API_URL="https://api.code-migration.ai"
-export MIGRATION_API_KEY="your-api-key"
+## Python API
 
-# Security Configuration
-export MIGRATION_SECURITY_LEVEL="high"
-export MIGRATION_AUDIT_LOGGING="true"
-
-# Performance Configuration
-export MIGRATION_MAX_WORKERS="4"
-export MIGRATION_TIMEOUT="300"
-```
-
-### Custom Rules
-
-Create custom migration rules:
+You can use the migration assistant programmatically in your own tools and scripts:
 
 ```python
-# custom_rules.py
-from skills.code_migration.core.rules import BaseRule
+from pathlib import Path
+from code_migration.core.confidence import MigrationConfidenceAnalyzer
+from code_migration.core.visualizer import VisualMigrationPlanner
+from code_migration.core.rollback import TimeMachineRollback
+from code_migration.core.compliance import PIIDetector
 
-class CustomReactRule(BaseRule):
-    def apply(self, code):
-        # Custom transformation logic
-        return transformed_code
+# ── Confidence Analysis ──────────────────────────────────
+analyzer = MigrationConfidenceAnalyzer("./my-project")
+confidence = analyzer.calculate_confidence("react-hooks", team_experience=70)
+print(f"Confidence: {confidence.overall_score}/100")
+print(f"Risk Level: {confidence.risk_level}")
+print(f"Estimated Hours: {confidence.estimated_hours}")
 
-# Register the rule
-migrate register-rule custom_rules.CustomReactRule --type react-hooks
+# ── Visual Planning ──────────────────────────────────────
+planner = VisualMigrationPlanner("./my-project")
+planner.build_dependency_graph()
+waves = planner.calculate_migration_waves()
+planner.generate_d3_visualization("migration-graph.html")
+
+# ── Rollback ─────────────────────────────────────────────
+rollback = TimeMachineRollback("./my-project")
+checkpoint_id = rollback.create_checkpoint("Pre-migration backup")
+# ... execute migration ...
+# rollback.rollback(checkpoint_id)  # if something goes wrong
+
+# ── PII Scanning ─────────────────────────────────────────
+with PIIDetector(Path("./my-project")) as detector:
+    results = detector.scan_directory(file_extensions=['.py', '.js'])
+    print(f"Files with PII: {results['files_with_pii']}")
+    print(f"Total findings: {results['total_findings']}")
 ```
+
+---
 
 ## Troubleshooting
 
-### Common Issues
+### Migration Fails with Security Error
 
-#### Migration Fails with Security Error
+**Symptom:** Migration blocked by security controls.
 
-**Problem**: Migration blocked by security controls
-
-**Solution**:
 ```bash
 # Check what's being blocked
 migrate analyze ./file.jsx --security-check
 
-# Adjust security settings if needed
-migrate config security --level medium
+# Temporarily adjust security level
+MIGRATION_SECURITY_LEVEL=medium migrate run ./project --type react-hooks
 ```
 
-#### Memory Issues with Large Projects
+> [!WARNING]
+> Lowering the security level bypasses important safety checks. Only do this if you understand the risk. See the [Security Policy](security/SECURITY.md) for details on each control.
 
-**Problem**: Out of memory errors on large codebases
+### Memory Issues with Large Projects
 
-**Solution**:
+**Symptom:** Out of memory errors on codebases with 1000+ files.
+
 ```bash
-# Limit concurrent operations
+# Limit concurrent workers
 migrate analyze ./large-project --workers 2 --batch-size 50
 
 # Use incremental analysis
 migrate analyze ./large-project --incremental
 ```
 
-#### Rollback Fails
+### Rollback Fails
 
-**Problem**: Cannot rollback to checkpoint
+**Symptom:** Cannot rollback to checkpoint.
 
-**Solution**:
 ```bash
 # Check checkpoint integrity
 migrate checkpoint verify 20250208_143022
 
-# Force rollback if needed
+# Force rollback (bypasses conflict checks)
 migrate rollback --to 20250208_143022 --force
 ```
 
-#### Compliance Scan Too Slow
+### Compliance Scan Too Slow
 
-**Problem**: Compliance scanning taking too long
+**Symptom:** PII/PHI scanning takes too long on large projects.
 
-**Solution**:
 ```bash
-# Limit file types
+# Limit file types to speed up scanning
 migrate compliance scan ./project --pii --extensions .py,.js,.jsx
 
 # Use parallel processing
@@ -623,179 +614,90 @@ migrate compliance scan ./project --pii --parallel
 
 ### Debug Mode
 
-Enable debug logging:
-
 ```bash
-# Enable debug mode
-export MIGRATION_DEBUG=true
-migrate analyze ./project --type react-hooks --verbose
+# Enable verbose logging
+MIGRATION_DEBUG=true migrate analyze ./project --type react-hooks --verbose
 
-# Check logs
+# Review audit logs
 tail -f .migration-logs/security_audit.jsonl
 ```
 
-### Getting Help
-
-```bash
-# Get help for specific command
-migrate analyze --help
-migrate run --help
-migrate rollback --help
-
-# Check system status
-migrate status
-
-# Validate configuration
-migrate config validate
-```
-
-### Performance Issues
-
-#### Optimize for Large Projects
-
-```bash
-# Use performance settings
-migrate analyze ./large-project --performance-mode
-
-# Limit analysis scope
-migrate analyze ./large-project --include src/components --exclude tests
-
-# Use caching
-migrate analyze ./large-project --cache
-```
-
-#### Memory Optimization
-
-```bash
-# Reduce memory usage
-migrate analyze ./project --memory-limit 2GB
-
-# Use streaming mode
-migrate analyze ./project --streaming
-```
+---
 
 ## Best Practices
 
 ### Before Migration
 
-1. **Create Backup**
+1. **Create a checkpoint** — always have a safety net
    ```bash
    migrate checkpoint create "Pre-migration backup"
    ```
 
-2. **Analyze Thoroughly**
+2. **Run confidence analysis** — understand your risk
    ```bash
    migrate analyze ./project --type react-hooks --confidence --risk-analysis
    ```
 
-3. **Test on Small Subset**
+3. **Test on a small subset** — validate the transformation
    ```bash
    migrate run ./src/components --type react-hooks --dry-run --files Button.jsx
    ```
 
-4. **Review Compliance**
+4. **Run compliance scan** — catch PII before it leaks
    ```bash
    migrate compliance scan ./project --pii --secrets
    ```
 
 ### During Migration
 
-1. **Use Incremental Approach**
+1. **Use migration waves** — don't big-bang
    ```bash
    migrate run ./project --type react-hooks --waves --auto-rollback
    ```
 
-2. **Monitor Progress**
+2. **Monitor progress** — watch for failures in real-time
    ```bash
    migrate status --watch
    ```
 
-3. **Validate Each Wave**
-   ```bash
-   migrate validate --wave 1
-   ```
-
 ### After Migration
 
-1. **Run Tests**
+1. **Run your test suite** — verify nothing broke
    ```bash
-   npm test
-   pytest
+   pytest    # or npm test, depending on your project
    ```
 
-2. **Verify Functionality**
+2. **Verify the migration** — automated post-migration checks
    ```bash
    migrate verify ./project --type react-hooks
    ```
 
-3. **Update Documentation**
-   ```bash
-   migrate docs update ./project --type react-hooks
-   ```
-
-4. **Clean Up**
+3. **Clean up old checkpoints** — reclaim disk space
    ```bash
    migrate cleanup --keep-checkpoints 5
    ```
 
 ### Security Best Practices
 
-1. **Regular Security Scans**
-   ```bash
-   migrate compliance scan ./project --security
-   ```
-
-2. **Monitor Audit Logs**
-   ```bash
-   migrate audit recent --security-events
-   ```
-
-3. **Update Dependencies**
-   ```bash
-   migrate security update
-   ```
-
-### Team Collaboration
-
-1. **Share Migration Plans**
-   ```bash
-   migrate plan ./project --export plan.json
-   ```
-
-2. **Code Review**
-   ```bash
-   migrate review ./project --type react-hooks
-   ```
-
-3. **Document Changes**
-   ```bash
-   migrate docs generate ./project --type react-hooks
-   ```
-
-### Production Deployment
-
-1. **Staging Environment**
-   ```bash
-   migrate deploy ./project --staging --type react-hooks
-   ```
-
-2. **Canary Deployment**
-   ```bash
-   migrate deploy ./project --canary --type react-hooks --percentage 10
-   ```
-
-3. **Monitoring**
-   ```bash
-   migrate monitor ./project --alerts
-   ```
+- Run compliance scans regularly, not just during migrations
+- Monitor audit logs for suspicious activity
+- Keep dependencies up to date
+- See the full [Security Policy](security/SECURITY.md) for detailed controls
 
 ---
 
-## Need Help?
+## Related Documentation
 
-- **Documentation**: https://docs.code-migration.ai
-- **Community**: https://slack.code-migration.ai
-- **Issues**: https://github.com/anudeepsrib/code-migration-assistant/issues
-- **Support**: support@code-migration.ai
+| Document | Description |
+|----------|-------------|
+| [README](../../README.md) | Project overview and quick reference |
+| [Installation Guide](INSTALLATION.md) | Platform-specific setup instructions |
+| [Security Policy](security/SECURITY.md) | Security architecture, threat model, compliance |
+| [Contributing Guide](../../CONTRIBUTING.md) | Development setup, coding standards, PR process |
 
-For more detailed information about specific features, see the [API Documentation](docs/api/README.md) and [Migration Guides](docs/migrations/README.md).
+---
+
+**Need Help?**
+
+- **Issues**: [github.com/anudeepsrib/code-migration-assistant/issues](https://github.com/anudeepsrib/code-migration-assistant/issues)
+- **Discussions**: [github.com/anudeepsrib/code-migration-assistant/discussions](https://github.com/anudeepsrib/code-migration-assistant/discussions)

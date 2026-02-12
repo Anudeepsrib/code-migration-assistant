@@ -1,289 +1,285 @@
 # Security Policy
 
-## Overview
+> Security architecture, threat model, and compliance framework for the **Code Migration Assistant**.
+>
+> For usage instructions, see the [User Guide](../USER_GUIDE.md). For setup, see the [Installation Guide](../INSTALLATION.md). For contributing security improvements, see the [Contributing Guide](../../CONTRIBUTING.md).
 
-The Code Migration Assistant follows a **security-first design** with comprehensive controls to ensure safe, compliant, and reliable code migration operations.
+---
 
-## Security Architecture
+## Table of Contents
 
-### 🛡️ Zero Trust Architecture
+1. [Security Philosophy](#security-philosophy)
+2. [Security Controls](#security-controls)
+3. [Threat Model](#threat-model)
+4. [Compliance Framework](#compliance-framework)
+5. [Security Testing](#security-testing)
+6. [Incident Response](#incident-response)
+7. [Security Configuration](#security-configuration)
+8. [Reporting Vulnerabilities](#reporting-vulnerabilities)
+9. [Best Practices](#best-practices)
 
-We operate under the principle of **zero code execution** - all analysis is performed using AST (Abstract Syntax Tree) parsing only, with no actual code execution.
+---
 
-### 🔒 Defense in Depth
+## Security Philosophy
 
-Multiple security layers at every level:
-- **Input Validation**: All inputs validated against strict patterns
-- **Path Sanitization**: Prevents directory traversal and path injection
-- **Code Sandboxing**: AST-only analysis with resource limits
-- **Audit Logging**: Complete audit trails for compliance
-- **Rate Limiting**: DoS prevention and abuse control
+The Code Migration Assistant follows a **zero-trust, defense-in-depth** architecture built on three principles:
+
+### 1. Zero Code Execution
+
+All analysis is performed using Python's `ast` module (Abstract Syntax Tree parsing). **No user-supplied code is ever executed.** This eliminates the most dangerous class of injection attacks — remote code execution — by design.
+
+### 2. Defense in Depth
+
+Every request passes through multiple independent security layers before touching the filesystem:
+
+```
+User Input → Input Validation → Path Sanitization → Rate Limiting → AST-Only Analysis → Audit Logging
+```
+
+A failure in any single layer does not compromise the system because every subsequent layer independently enforces its own constraints.
+
+### 3. Audit Everything
+
+Every file access, migration event, and security-relevant action is logged to immutable, append-only JSON structured logs with compliance metadata for GDPR, HIPAA, and SOC2.
+
+---
 
 ## Security Controls
 
 ### Input Validation
 
-**Location**: `core/security/input_validator.py`
+**Module:** `src/code_migration/core/security/input_validator.py`
 
-- **Forbidden Keywords**: `eval`, `exec`, `__import__`, `open`, `globals()`, `locals()`
-- **Forbidden Modules**: `os`, `sys`, `subprocess`, `socket`, `urllib`, `http`, `ftplib`, `smtplib`
-- **Size Limits**: Maximum 1000 lines, 1000 characters per line, 10KB total
-- **Syntax Validation**: All code must be valid Python/JavaScript syntax
-- **Pattern Matching**: Regex-based detection of dangerous patterns
+| Control | Details |
+|---------|---------|
+| Forbidden keywords | `eval`, `exec`, `__import__`, `open`, `globals()`, `locals()` |
+| Forbidden modules | `os`, `sys`, `subprocess`, `socket`, `urllib`, `http`, `ftplib`, `smtplib` |
+| File size limit | 10 MB max (`SafeCodeAnalyzer.MAX_FILE_SIZE`) |
+| Line count limit | Configurable (`SafeCodeAnalyzer.MAX_LINES`) |
+| Syntax validation | All code must parse via `ast.parse()` |
+| Pattern matching | Regex-based detection of dangerous constructs |
 
 ### Path Sanitization
 
-**Location**: `core/security/path_sanitizer.py`
+**Module:** `src/code_migration/core/security/path_sanitizer.py`
 
-- **Directory Traversal Prevention**: Blocks `../../../etc/passwd` patterns
-- **Path Canonicalization**: Resolves symbolic links and relative paths
-- **Extension Whitelisting**: Only allowed file extensions (`.py`, `.js`, `.jsx`, `.ts`, `.tsx`, `.vue`)
-- **Length Validation**: Maximum 4096 character path length
-- **Base Path Enforcement**: All paths must be within allowed base directory
+| Control | Details |
+|---------|---------|
+| Traversal prevention | Blocks `../`, `..\\`, and encoded variants |
+| Canonicalization | Resolves symlinks and relative paths to absolute |
+| Extension whitelist | `.py`, `.js`, `.jsx`, `.ts`, `.tsx`, `.vue`, `.html`, `.css`, `.json`, `.yaml`, `.yml`, `.md`, `.txt`, `.xml`, `.sql`, `.env` |
+| Path length limit | 4096 characters max |
+| Base path enforcement | All paths must resolve within the allowed project directory |
 
 ### Code Sandbox
 
-**Location**: `core/security/code_sandbox.py`
+**Module:** `src/code_migration/core/security/code_sandbox.py`
 
-- **AST-Only Analysis**: No code execution, only parsing
-- **Resource Limits**: Timeout and memory limits for analysis
-- **Complexity Calculation**: Cyclomatic and cognitive complexity metrics
-- **Safe Parsing**: Error handling for malformed code
-- **Content Analysis**: Static analysis without execution
+| Control | Details |
+|---------|---------|
+| AST-only analysis | `ast.parse()` + `ast.walk()` — no `eval`, no `exec` |
+| Resource limits | Configurable timeout and memory limits |
+| Complexity metrics | Cyclomatic and cognitive complexity calculation |
+| Safe error handling | Malformed code returns structured error, never crashes |
 
 ### Secrets Detection
 
-**Location**: `core/security/secrets_detector.py`
+**Module:** `src/code_migration/core/security/secrets_detector.py`
 
-- **20+ Secret Patterns**: API keys, passwords, tokens, certificates
-- **Severity Classification**: CRITICAL, HIGH, MEDIUM, LOW
-- **Context Analysis**: Line context and recommendations
-- **Hash-Based Detection**: Prevents false positives
-- **Compliance Mapping**: GDPR, HIPAA, PCI-DSS requirements
+| Capability | Details |
+|------------|---------|
+| Pattern library | 20+ patterns for API keys, passwords, tokens, certificates, connection strings |
+| Severity levels | CRITICAL, HIGH, MEDIUM, LOW |
+| Context analysis | Reports surrounding lines for manual review |
+| Compliance mapping | Each finding tagged with relevant regulation (GDPR, HIPAA, PCI-DSS) |
 
 ### Cryptographic Operations
 
-**Location**: `core/security/crypto_handler.py`
+**Module:** `src/code_migration/core/security/crypto_handler.py`
 
-- **Atomic File Operations**: Prevents partial corruption
-- **SHA-256 Checksums**: Integrity verification
-- **Automatic Backups**: Before any file modification
-- **Permission Preservation**: Maintains file permissions
-- **Rollback Safety**: Safe restoration capabilities
+| Control | Details |
+|---------|---------|
+| Atomic file writes | Write-then-rename prevents partial corruption |
+| Integrity verification | SHA-256 checksums on all checkpoints |
+| Automatic backups | Created before any file modification |
+| Permission preservation | Original file permissions maintained on write |
 
 ### Audit Logging
 
-**Location**: `core/security/audit_logger.py`
+**Module:** `src/code_migration/core/security/audit_logger.py`
 
-- **Structured JSON Logging**: Machine-readable audit trails
-- **Compliance Metadata**: GDPR, HIPAA, SOC2 compliance fields
-- **Log Rotation**: Prevents disk exhaustion
-- **Search Capabilities**: Query logs by time, user, event type
-- **Tamper Protection**: Hash-based integrity verification
+| Control | Details |
+|---------|---------|
+| Format | Structured JSON (`.jsonl`), machine-readable |
+| Compliance fields | GDPR, HIPAA, SOC2 metadata on every event |
+| Rotation | `RotatingFileHandler`, 50 MB max per file, 10 backups |
+| Retention | Configurable (default 90 days) |
+| Log search | Query by time range, user, event type |
+| Tamper protection | Append-only files with hash verification |
 
 ### Rate Limiting
 
-**Location**: `core/security/rate_limiter.py`
+**Module:** `src/code_migration/core/security/rate_limiter.py`
 
-- **Token Bucket Algorithm**: Fair rate limiting
-- **Multi-Limiter Support**: Different limits for different operations
-- **Thread-Safe**: Concurrent access protection
-- **Configurable Limits**: Adjustable per deployment
-- **Abuse Detection**: Automatic blocking of malicious patterns
+| Control | Details |
+|---------|---------|
+| Algorithm | Token bucket |
+| Granularity | Per-operation limits (migrations, file ops, analysis) |
+| Thread safety | Lock-protected concurrent access |
+| Abuse detection | Automatic blocking on pattern violations |
+
+---
 
 ## Threat Model
 
-### Threat Categories
+### Threat Matrix
 
-#### 1. Injection Attacks
-- **Risk**: Code injection through malicious input
-- **Mitigation**: Input validation, AST-only parsing, forbidden keyword detection
-- **Controls**: `input_validator.py`, `code_sandbox.py`
+| # | Threat | Risk | Mitigation | Controls |
+|---|--------|------|------------|----------|
+| 1 | **Code injection** | Malicious code executed via user input | AST-only parsing; forbidden keyword/module detection | `input_validator.py`, `code_sandbox.py` |
+| 2 | **Path traversal** | Access files outside the project directory | Path canonicalization + base directory enforcement | `path_sanitizer.py` |
+| 3 | **Information disclosure** | Sensitive data exposed in logs or output | Data anonymization; secrets detection; PII masking | `secrets_detector.py`, `audit_logger.py`, `anonymizer.py` |
+| 4 | **Denial of service** | Resource exhaustion via large/complex inputs | Rate limiting; file size/line count limits; timeouts | `rate_limiter.py`, `code_sandbox.py` |
+| 5 | **Data corruption** | Partial or incorrect file modifications | Atomic write-rename; SHA-256 checksums; auto-backups | `crypto_handler.py`, rollback engine |
 
-#### 2. Path Traversal
-- **Risk**: Access to files outside project directory
-- **Mitigation**: Path sanitization, base path enforcement
-- **Controls**: `path_sanitizer.py`
+### Attack Vector Examples
 
-#### 3. Information Disclosure
-- **Risk**: Exposure of sensitive data in logs or output
-- **Mitigation**: Data anonymization, secrets detection, audit logging
-- **Controls**: `secrets_detector.py`, `audit_logger.py`, `anonymizer.py`
-
-#### 4. Denial of Service
-- **Risk**: Resource exhaustion or system overload
-- **Mitigation**: Rate limiting, resource limits, timeouts
-- **Controls**: `rate_limiter.py`, `code_sandbox.py`
-
-#### 5. Data Corruption
-- **Risk**: Partial or incorrect file modifications
-- **Mitigation**: Atomic operations, checksums, backups
-- **Controls**: `crypto_handler.py`, rollback system
-
-### Attack Vectors
-
-#### Input-Based Attacks
+**Input injection (blocked):**
 ```python
-# Blocked patterns
-eval('malicious_code()')
-exec('system("rm -rf /")')
-__import__('os')
-open('/etc/passwd', 'r')
+eval('malicious_code()')        # Forbidden keyword
+exec('system("rm -rf /")')      # Forbidden keyword
+__import__('os').system('...')   # Forbidden module
 ```
 
-#### Path-Based Attacks
+**Path traversal (blocked):**
 ```python
-# Blocked paths
-"../../../etc/passwd"
-"..\\..\\windows\\system32\\config\\sam"
-"~/.ssh/id_rsa"
+"../../../etc/passwd"              # Traversal via ../
+"..\\..\\windows\\system32\\sam"   # Windows traversal
+"~/.ssh/id_rsa"                    # Home directory access
 ```
 
-#### Resource-Based Attacks
+**Resource exhaustion (mitigated):**
 ```python
-# Mitigated by limits
-# Large files (>10KB)
-# Complex code (>1000 lines)
-# Long-running operations (>30s timeout)
+# Large files (>10 MB)             → Rejected by MAX_FILE_SIZE
+# Complex files (>MAX_LINES)       → Rejected by line count check
+# Long-running analysis (>timeout) → Killed by pytest-timeout / rate limiter
 ```
+
+---
 
 ## Compliance Framework
 
 ### GDPR (General Data Protection Regulation)
 
-**Articles Implemented**:
-- **Article 5**: Data processing principles (lawfulness, fairness, transparency)
-- **Article 25**: Privacy by design and by default
-- **Article 32**: Security of processing
-- **Article 33**: Breach notification
-- **Article 35**: Data protection impact assessment
-
-**Implementation**:
-- PII detection and masking
-- Data minimization principles
-- Audit logging for processing activities
-- Secure data handling
+| Article | Requirement | Implementation |
+|---------|-------------|---------------|
+| Art. 5 | Data processing principles | PII detection, data minimization |
+| Art. 25 | Privacy by design | PII masking built into scan pipeline |
+| Art. 32 | Security of processing | Input validation, encryption, audit logging |
+| Art. 33 | Breach notification | Structured audit logs for incident response |
+| Art. 35 | Data protection impact assessment | Compliance reports with risk scoring |
 
 ### HIPAA (Health Insurance Portability and Accountability Act)
 
-**Security Rule Implementation**:
-- **Administrative Safeguards**: Security policies, training, access management
-- **Physical Safeguards**: Facility access, device security
-- **Technical Safeguards**: Access control, audit controls, integrity, transmission security
-
-**Implementation**:
-- PHI detection and protection
-- Access control mechanisms
-- Audit trail generation
-- Data encryption and masking
+| Safeguard | Requirement | Implementation |
+|-----------|-------------|---------------|
+| Administrative | Security policies and access management | Role-based audit logging |
+| Technical | Access control, audit controls, integrity | PHI detection, SHA-256 checksums, structured logs |
+| Physical | Device and facility security | N/A (software tool, not hosted infrastructure) |
 
 ### SOC2 (Service Organization Control 2)
 
-**Trust Services Criteria**:
-- **Security**: System protection against unauthorized access
-- **Availability**: System is available for operation and use
-- **Processing Integrity**: System processing is complete, accurate, timely, and authorized
-- **Confidentiality**: Information is protected from unauthorized disclosure
-- **Privacy**: Personal information is collected, used, retained, disclosed, and disposed of
+| Trust Criteria | Implementation |
+|----------------|---------------|
+| Security | Input validation, path sanitization, rate limiting |
+| Availability | Health monitoring in live migration mode |
+| Processing Integrity | Atomic operations, checksum verification |
+| Confidentiality | Secrets detection, PII anonymization |
+| Privacy | GDPR-compliant PII handling |
 
-**Implementation**:
-- Comprehensive security controls
-- Availability monitoring
-- Data integrity verification
-- Confidentiality protection
-- Privacy controls
+### PCI-DSS (Payment Card Industry)
 
-### PCI-DSS (Payment Card Industry Data Security Standard)
+| Requirement | Implementation |
+|-------------|---------------|
+| Req. 3 — Protect stored data | Credit card pattern detection, data masking |
+| Req. 7 — Restrict access | Path-based access control |
+| Req. 10 — Track access | Comprehensive audit logging |
 
-**Requirements Implemented**:
-- **Requirement 3**: Protect stored cardholder data
-- **Requirement 4**: Encrypt cardholder data across open networks
-- **Requirement 7**: Restrict access to cardholder data
-- **Requirement 10**: Track and monitor all access to network resources and cardholder data
-
-**Implementation**:
-- Credit card number detection
-- Data masking and encryption
-- Access control
-- Comprehensive audit logging
+---
 
 ## Security Testing
 
-### Automated Security Testing
+### Automated Tests
 
-**Location**: `tests/security/`
-
-- **Input Validation Tests**: `test_input_validation.py`
-- **Path Sanitization Tests**: `test_path_sanitizer.py`
-- **Secrets Detection Tests**: Integrated in compliance tests
-- **Rate Limiting Tests**: Integrated in performance tests
-
-### Security Scanning Tools
+The test suite includes dedicated security tests in `tests/security/`:
 
 ```bash
-# Static analysis
-bandit -r skills/code_migration/
-safety check
+# Run all security tests
+pytest tests/security/ -v
 
-# Dependency scanning
-pip-audit
-
-# Code quality
-flake8 skills/code_migration/
-black skills/code_migration/
+# Run specific test files
+pytest tests/security/test_input_validation.py -v
+pytest tests/security/test_path_sanitizer.py -v
 ```
 
-### Penetration Testing
+### Static Analysis
 
-**Test Scenarios**:
-1. **Injection Attempts**: Try to inject malicious code through input
-2. **Path Traversal**: Attempt to access files outside project
-3. **Resource Exhaustion**: Try to consume excessive resources
-4. **Information Disclosure**: Attempt to expose sensitive data
-5. **Privilege Escalation**: Try to bypass access controls
+```bash
+# Security linter
+bandit -r src/code_migration/
+
+# Dependency vulnerability scanning
+pip-audit
+
+# General code quality
+flake8 src/code_migration/
+black --check src/code_migration/
+```
+
+### Security Review Checklist
+
+For every pull request:
+
+- [ ] No code execution (`eval`, `exec`, `__import__`)
+- [ ] Input validation for all external inputs
+- [ ] Path traversal prevention on all file operations
+- [ ] Proper error handling without information disclosure
+- [ ] Audit logging for security-relevant events
+- [ ] Rate limiting where appropriate
+
+---
 
 ## Incident Response
 
-### Security Incident Classification
+### Severity Classification
 
-#### Critical (Immediate Response Required)
-- Data breach involving PII/PHI
-- System compromise or unauthorized access
-- Successful injection or traversal attacks
+| Level | Criteria | Response Time |
+|-------|----------|---------------|
+| **Critical** | Data breach involving PII/PHI; system compromise; successful injection | Immediate |
+| **High** | Failed bypass attempts; large-scale rate limit violations | 1 hour |
+| **Medium** | Individual security control failures; minor compliance gaps | 4 hours |
+| **Low** | Configuration issues; logging problems; documentation updates | 24 hours |
 
-#### High (Response within 1 hour)
-- Failed security control bypass attempts
-- Large-scale rate limit violations
-- Suspicious audit log patterns
+### Response Process
 
-#### Medium (Response within 4 hours)
-- Individual security control failures
-- Minor compliance violations
-- Performance issues affecting security
+1. **Detection** — automated monitoring and alerting via audit logs
+2. **Assessment** — impact analysis and severity classification
+3. **Containment** — isolate affected systems or paths
+4. **Eradication** — remove vulnerability; deploy patch
+5. **Recovery** — restore normal operations; verify integrity
+6. **Post-mortem** — update controls, tests, and documentation
 
-#### Low (Response within 24 hours)
-- Configuration issues
-- Minor logging problems
-- Documentation updates
-
-### Response Procedures
-
-1. **Detection**: Automated monitoring and alerting
-2. **Assessment**: Impact analysis and classification
-3. **Containment**: Isolate affected systems
-4. **Eradication**: Remove threats and vulnerabilities
-5. **Recovery**: Restore normal operations
-6. **Lessons Learned**: Update controls and procedures
+---
 
 ## Security Configuration
 
-### Default Security Settings
+### Default Settings
 
 ```yaml
 # config/security_policy.yaml
 security:
   input_validation:
-    max_file_size: 10485760  # 10MB
+    max_file_size: 10485760  # 10 MB
     max_lines: 1000
     max_line_length: 1000
     forbidden_keywords:
@@ -297,7 +293,6 @@ security:
       - subprocess
   
   path_sanitization:
-    allowed_base: "./project"
     max_path_length: 4096
     allowed_extensions:
       - .py
@@ -313,108 +308,78 @@ security:
     analysis_timeout: 300
 ```
 
-### Environment-Specific Settings
+### Environment-Specific Tuning
 
-#### Development
-- Relaxed rate limits for testing
-- Verbose logging enabled
-- Debug information available
+| Setting | Development | Staging | Production |
+|---------|-------------|---------|------------|
+| Rate limits | Relaxed | Production-like | Strict |
+| Logging | Verbose (DEBUG) | Comprehensive (INFO) | Minimal (WARNING) |
+| Debug info | Enabled | Limited | Disabled |
 
-#### Staging
-- Production-like security settings
-- Comprehensive logging
-- Performance monitoring
+---
 
-#### Production
-- Maximum security controls
-- Minimal logging (performance)
-- Strict rate limiting
-
-## Reporting Security Issues
+## Reporting Vulnerabilities
 
 ### Responsible Disclosure
 
 If you discover a security vulnerability, please report it responsibly:
 
-1. **Email**: security@code-migration.ai
-2. **PGP Key**: Available on request
-3. **Response Time**: Within 48 hours
-4. **Patch Timeline**: Within 7 days for critical issues
+1. **Email:** Open a [GitHub Security Advisory](https://github.com/anudeepsrib/code-migration-assistant/security/advisories/new)
+2. **Response time:** Within 48 hours
+3. **Patch timeline:** Critical issues within 7 days
 
-### Bug Bounty Program
-
-- **Critical**: $1,000 - $5,000
-- **High**: $500 - $1,000
-- **Medium**: $100 - $500
-- **Low**: $50 - $100
-
-### Security Contact
-
-- **Security Team**: security@code-migration.ai
-- **PGP Key**: 0xABCD1234EFGH5678
-- **Encryption**: Use PGP for sensitive communications
-
-## Security Updates
+> [!CAUTION]
+> Do **not** open a public GitHub issue for security vulnerabilities. Use the Security Advisory feature or email for responsible disclosure.
 
 ### Patch Management
 
-- **Critical Patches**: Within 24 hours
-- **High Priority**: Within 72 hours
-- **Medium Priority**: Within 7 days
-- **Low Priority**: Next release cycle
-
-### Update Channels
-
-- **Security Announcements**: security@code-migration.ai
-- **GitHub Security Advisories**: https://github.com/anudeepsrib/code-migration-assistant/security/advisories
-- **Changelog**: Included in each release
-
-## Compliance Certifications
-
-### Current Status
-
-- ✅ **GDPR Compliant**: Article 32 technical measures implemented
-- ✅ **HIPAA Ready**: Security rule controls in place
-- ✅ **SOC2 Ready**: Trust services criteria implemented
-- ✅ **PCI-DSS Ready**: Payment card data protection
-
-### Audit Reports
-
-- **Internal Audits**: Quarterly
-- **External Audits**: Annually
-- **Penetration Tests**: Biannually
-- **Compliance Reviews**: Monthly
-
-## Security Best Practices
-
-### For Users
-
-1. **Keep Updated**: Always use the latest version
-2. **Review Logs**: Monitor audit logs for suspicious activity
-3. **Use Checkpoints**: Create checkpoints before major changes
-4. **Validate Inputs**: Ensure all inputs are properly validated
-5. **Report Issues**: Report security concerns promptly
-
-### For Developers
-
-1. **Security First**: Consider security in all design decisions
-2. **Input Validation**: Never trust user input
-3. **Principle of Least Privilege**: Minimum necessary permissions
-4. **Defense in Depth**: Multiple security layers
-5. **Regular Testing**: Include security tests in all changes
-
-### For Administrators
-
-1. **Regular Updates**: Keep systems and dependencies updated
-2. **Access Control**: Implement proper access controls
-3. **Monitoring**: Continuous security monitoring
-4. **Backup Strategy**: Regular, tested backups
-5. **Incident Response**: Have a response plan ready
+| Severity | Patch Timeline |
+|----------|---------------|
+| Critical | 24 hours |
+| High | 72 hours |
+| Medium | 7 days |
+| Low | Next release cycle |
 
 ---
 
-**Last Updated**: 2025-02-08  
-**Version**: 2.0  
-**Next Review**: 2025-05-08  
+## Best Practices
 
-For security questions or concerns, contact: security@code-migration.ai
+### For Users
+
+1. Always use the latest release — security patches are applied promptly
+2. Review audit logs periodically for unusual activity
+3. Create checkpoints before major migrations
+4. Run compliance scans before and after migration
+5. Report anything suspicious
+
+### For Contributors
+
+1. Security is a first-class design constraint, not an afterthought
+2. Never trust user input — validate everything
+3. Use `PathSanitizer` for all file operations
+4. Write security tests for every new feature
+5. See the [Contributing Guide](../../CONTRIBUTING.md#security-requirements) for the full security review checklist
+
+### For CI/CD
+
+1. Run `bandit -r src/code_migration/` in the pipeline
+2. Run `pytest tests/security/` on every PR
+3. Use `pip-audit` to catch dependency vulnerabilities
+4. Enable strict markers to prevent test configuration drift
+
+---
+
+## Related Documentation
+
+| Document | Description |
+|----------|-------------|
+| [README](../../README.md) | Project overview and architecture |
+| [User Guide](../USER_GUIDE.md) | Complete usage documentation |
+| [Installation Guide](../INSTALLATION.md) | Setup instructions |
+| [Contributing Guide](../../CONTRIBUTING.md) | Development workflow and security requirements |
+
+---
+
+**Last Updated:** 2026-02-11
+**Version:** 3.0
+**Next Review:** 2026-05-11
