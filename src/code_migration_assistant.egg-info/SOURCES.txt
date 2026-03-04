@@ -66,5 +66,3 @@ src/code_migration_assistant.egg-info/SOURCES.txt
 src/code_migration_assistant.egg-info/dependency_links.txt
 src/code_migration_assistant.egg-info/requires.txt
 src/code_migration_assistant.egg-info/top_level.txt
-tests/test_migrators.py
-tests/test_security.py

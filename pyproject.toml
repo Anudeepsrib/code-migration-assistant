@@ -20,7 +20,10 @@ dependencies = [
     "typer[all]",
     "rich",
     "pyyaml",
-    "python-dotenv"
+    "python-dotenv",
+    "fastapi",
+    "uvicorn",
+    "sse-starlette"
 ]
 
 [project.optional-dependencies]
