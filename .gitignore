@@ -4,8 +4,21 @@ __pycache__/
 *$py.class
 *.so
 .Python
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Egg info (build artifacts)
+*.egg-info/
+*.egg
+
 # Node
 node_modules/
+
+# UI build artifacts
+ui/dist/
 npm-debug.log
 yarn-error.log
 

@@ -21,10 +21,16 @@ dependencies = [
     "rich",
     "pyyaml",
     "python-dotenv",
+    "networkx",
+    "psutil",
     "fastapi",
     "uvicorn",
-    "sse-starlette"
+    "sse-starlette",
+    "mcp[cli]"
 ]
+
+[project.scripts]
+code-migration-mcp = "code_migration.mcp_server:main"
 
 [project.optional-dependencies]
 dev = [

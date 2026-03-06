@@ -4,7 +4,7 @@ pyyaml
 python-dotenv
 networkx
 psutil
-pytest-timeout
 fastapi
 uvicorn
 sse-starlette
+mcp[cli]

@@ -1,0 +1,12 @@
+{
+    "mcpServers": {
+        "code-migration-assistant": {
+            "command": "python",
+            "args": [
+                "-m",
+                "code_migration.mcp_server"
+            ],
+            "cwd": "."
+        }
+    }
+}
