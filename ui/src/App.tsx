@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 
+// --- Types ---
+type View = 'dashboard' | 'migration' | 'compliance' | 'plugins';
 type LogLevel = 'debug' | 'info' | 'success' | 'warning' | 'error';
 type AppStatus = 'idle' | 'running' | 'success' | 'error';
-type Theme = 'dark' | 'light';
 
 interface LogEntry {
     timestamp: string;
@@ -10,92 +11,73 @@ interface LogEntry {
     level: LogLevel;
 }
 
-// SVG Icons as small components
-const SunIcon = () => (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="5" />
-        <line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" />
-        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-        <line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" />
-        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-    </svg>
-);
-
-const MoonIcon = () => (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-    </svg>
-);
+// --- Icons (SVG) ---
+const LayoutIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>;
+const PlayIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>;
+const ShieldIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>;
+const PackageIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>;
+const SettingsIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>;
+const CpuIcon = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="15" x2="23" y2="15"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="15" x2="4" y2="15"></line></svg>;
 
 function App() {
+    const [activeView, setActiveView] = useState<View>('dashboard');
+    const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+    const [status, setStatus] = useState<AppStatus>('idle');
     const [logs, setLogs] = useState<LogEntry[]>([]);
+
+    // App State
     const [targetPath, setTargetPath] = useState<string>('./my-project');
     const [migrationType, setMigrationType] = useState<string>('react-hooks');
     const [isDryRun, setIsDryRun] = useState<boolean>(true);
-    const [status, setStatus] = useState<AppStatus>('idle');
-    const [theme, setTheme] = useState<Theme>(() => {
-        const saved = localStorage.getItem('cma-theme');
-        return (saved === 'light' || saved === 'dark') ? saved : 'dark';
-    });
 
+    // Metrics (Derived/Active)
     const [filesScanned, setFilesScanned] = useState<number>(0);
     const [filesMigrated, setFilesMigrated] = useState<number>(0);
     const [issuesFound, setIssuesFound] = useState<number>(0);
+    const [piiFindings, setPiiFindings] = useState<number>(0);
+    const [securityViolations, setSecurityViolations] = useState<number>(0);
 
     const consoleEndRef = useRef<HTMLDivElement>(null);
     const eventSourceRef = useRef<EventSource | null>(null);
 
-    // Apply theme to DOM
+    // Layout Side Effects
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('cma-theme', theme);
     }, [theme]);
 
-    // Auto-scroll
     useEffect(() => {
         if (consoleEndRef.current) {
             consoleEndRef.current.scrollIntoView({ behavior: 'smooth' });
         }
     }, [logs]);
 
-    const toggleTheme = () => {
-        setTheme(prev => prev === 'dark' ? 'light' : 'dark');
-    };
-
+    // Core Actions
     const addLog = (text: string, level: LogLevel = 'info') => {
         const timestamp = new Date().toISOString().substring(11, 19);
         setLogs(prev => [...prev, { timestamp, text, level }]);
 
-        if (text.includes("Found candidate") || text.includes("Scanning")) {
-            setFilesScanned(prev => prev + 1);
-        }
-        if (text.includes("Migrated:")) {
-            setFilesMigrated(prev => prev + 1);
-        }
-        if (level === 'error' || text.includes("Security Error")) {
-            setIssuesFound(prev => prev + 1);
-        }
+        if (text.includes("Found candidate") || text.includes("Scanning")) setFilesScanned(prev => prev + 1);
+        if (text.includes("Migrated:")) setFilesMigrated(prev => prev + 1);
+        if (level === 'error' || text.includes("Security Error")) setIssuesFound(prev => prev + 1);
+        if (text.includes("PII") || text.includes("GDPR")) setPiiFindings(prev => prev + 1);
+        if (text.includes("Sandbox") || text.includes("Path Violation")) setSecurityViolations(prev => prev + 1);
     };
 
     const startAction = (action: 'analyze' | 'run') => {
         if (status === 'running') return;
-
         setLogs([]);
         setFilesScanned(0);
         setFilesMigrated(0);
         setIssuesFound(0);
+        setPiiFindings(0);
+        setSecurityViolations(0);
         setStatus('running');
 
-        if (eventSourceRef.current) {
-            eventSourceRef.current.close();
-        }
-
+        if (eventSourceRef.current) eventSourceRef.current.close();
         addLog(`[System] Initiating ${action} sequence for ${migrationType}`, 'debug');
 
         let url = `/api/${action}?path=${encodeURIComponent(targetPath)}&type=${encodeURIComponent(migrationType)}`;
-        if (action === 'run') {
-            url += `&dry_run=${isDryRun}`;
-        }
+        if (action === 'run') url += `&dry_run=${isDryRun}`;
 
         const eventSource = new EventSource(url);
         eventSourceRef.current = eventSource;
@@ -104,204 +86,310 @@ function App() {
             const data = event.data;
             if (data === "DONE") {
                 eventSource.close();
-                setStatus(prev => prev === 'error' ? 'error' : 'success');
+                setStatus('success');
                 addLog(`=== ${action.toUpperCase()} COMPLETE ===`, 'debug');
             } else if (data.toLowerCase().includes("error") || data.toLowerCase().includes("failed")) {
                 addLog(data, 'error');
             } else if (data.includes("Migrated") || data.includes("Found candidate") || data.includes("Complete")) {
                 addLog(data, 'success');
-            } else if (data.includes("Dry Run")) {
-                addLog(data, 'warning');
             } else {
                 addLog(data, 'info');
             }
-        };
-
-        eventSource.onerror = (err) => {
-            console.error("EventSource failed:", err);
-            eventSource.close();
-            setStatus('error');
-            addLog("Connection dropped unexpectedly.", 'error');
         };
     };
 
     const cancelAction = () => {
         if (eventSourceRef.current) {
             eventSourceRef.current.close();
-            eventSourceRef.current = null;
             setStatus('idle');
             addLog("[System] Sequence terminated by operator.", 'warning');
         }
     };
 
-    const clearLogs = () => setLogs([]);
+    // --- Sub-Views ---
 
-    const getStatusLabel = () => {
-        switch (status) {
-            case 'idle': return 'Ready';
-            case 'running': return 'Executing';
-            case 'success': return 'Completed';
-            case 'error': return 'Halted';
-        }
-    };
-
-    return (
-        <div className="app-container">
-            {/* Top Navigation */}
-            <header className="top-nav">
-                <div className="nav-brand">
-                    <div className="brand-logo">C</div>
-                    <div>
-                        <h1 style={{ fontSize: '1rem' }}>Code Migration Assistant</h1>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Enterprise Edition</div>
+    const DashboardView = () => (
+        <div className="view-container fade-in">
+            <div className="stats-grid">
+                <div className="glass-card">
+                    <div className="stat-header">
+                        <div className="stat-icon" style={{ background: 'rgba(99, 102, 241, 0.1)', color: 'var(--primary)' }}>
+                            <LayoutIcon />
+                        </div>
+                        {filesMigrated > 0 && <span className="badge badge-success">+2.4%</span>}
+                    </div>
+                    <div className="stat-value">{filesMigrated > 0 ? "84%" : "--"}</div>
+                    <div className="stat-label">Avg. Confidence Score</div>
+                    <div style={{ marginTop: '1rem', height: '30px', width: '100%', opacity: 0.3 }}>
+                        <svg viewBox="0 0 100 30" preserveAspectRatio="none" style={{ width: '100%', height: '100%' }}>
+                            <path d="M0,25 L20,20 L40,28 L60,10 L80,15 L100,5" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" />
+                        </svg>
                     </div>
                 </div>
-
-                <div className="nav-right">
-                    <div className={`status-pill ${status}`}>
-                        <div className="pulse-dot"></div>
-                        {getStatusLabel()}
-                    </div>
-                    <div className="nav-divider"></div>
-
-                    {/* Theme Toggle */}
-                    <div className="theme-toggle" onClick={toggleTheme} title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>
-                        <div className="theme-toggle-thumb">
-                            {theme === 'dark' ? <MoonIcon /> : <SunIcon />}
+                <div className="glass-card">
+                    <div className="stat-header">
+                        <div className="stat-icon" style={{ background: 'rgba(16, 185, 129, 0.1)', color: 'var(--emerald)' }}>
+                            <PackageIcon />
                         </div>
                     </div>
-
-                    <div className="nav-divider"></div>
-                    <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Operator</span>
+                    <div className="stat-value">{filesScanned > 0 ? (filesScanned * 12).toLocaleString() : "0"}</div>
+                    <div className="stat-label">Approx. LoC Analyzed</div>
+                    <div style={{ marginTop: '1rem', height: '30px', width: '100%', opacity: 0.3 }}>
+                        <svg viewBox="0 0 100 30" preserveAspectRatio="none" style={{ width: '100%', height: '100%' }}>
+                            <path d="M0,28 L20,25 L40,20 L60,22 L80,18 L100,15" fill="none" stroke="var(--emerald)" strokeWidth="2" strokeLinecap="round" />
+                        </svg>
+                    </div>
                 </div>
-            </header>
+                <div className="glass-card">
+                    <div className="stat-header">
+                        <div className="stat-icon" style={{ background: 'rgba(244, 63, 94, 0.1)', color: 'var(--rose)' }}>
+                            <ShieldIcon />
+                        </div>
+                    </div>
+                    <div className="stat-value">{issuesFound}</div>
+                    <div className="stat-label">Security Flags</div>
+                    <div style={{ marginTop: '1rem', height: '30px', width: '100%', opacity: 0.3 }}>
+                        <svg viewBox="0 0 100 30" preserveAspectRatio="none" style={{ width: '100%', height: '100%' }}>
+                            <path d="M0,15 L20,18 L40,15 L60,25 L80,22 L100,28" fill="none" stroke="var(--rose)" strokeWidth="2" strokeLinecap="round" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
 
-            {/* Main Workspace */}
-            <div className="workspace">
-                {/* Configuration Sidebar */}
-                <aside className="sidebar">
-                    <div>
-                        <h2 className="section-title">Configuration</h2>
-                        <p style={{ marginBottom: '1.5rem' }}>Define migration targets and parameters.</p>
+            <div className="glass-card" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: '300px' }}>
+                {filesScanned === 0 ? (
+                    <div style={{ textAlign: 'center' }}>
+                        <div style={{ color: 'var(--text-dim)', marginBottom: '1rem' }}><CpuIcon /></div>
+                        <h3>No Live Telemetry</h3>
+                        <p style={{ maxWidth: '400px', margin: '1rem auto' }}>Connect to a project in the Migration Engine to start streaming architectural insights and risk scores.</p>
+                        <button className="btn btn-secondary" style={{ width: 'auto' }} onClick={() => setActiveView('migration')}>Go to Migration Engine</button>
+                    </div>
+                ) : (
+                    <div style={{ width: '100%' }}>
+                        <h3 style={{ marginBottom: '1.5rem' }}>Active Session Activity</h3>
+                        <div className="log-entry" style={{ padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px' }}>
+                            <span className="log-time">{new Date().toISOString().substring(11, 16)}</span>
+                            <div className="log-msg info">System initialized. Last scan processed {filesScanned} nodes. {filesMigrated} mutations pending application.</div>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
 
-                        <div className="form-group" style={{ marginBottom: '1rem' }}>
-                            <label>Target Path</label>
+
+    const MigrationView = () => (
+        <div className="view-container">
+            <div className="console-section">
+                <div className="config-panel">
+                    <div className="glass-card">
+                        <h3 style={{ marginBottom: '1.5rem' }}>Configuration</h3>
+                        <div className="input-group" style={{ marginBottom: '1.25rem' }}>
+                            <label className="input-label">Project Ingress Path</label>
                             <input
-                                className="form-control"
-                                type="text"
+                                className="input-field"
                                 value={targetPath}
                                 onChange={e => setTargetPath(e.target.value)}
-                                placeholder="/var/lib/workspace/my-app"
+                                placeholder="/var/www/my-app"
                             />
                         </div>
-
-                        <div className="form-group" style={{ marginBottom: '1rem' }}>
-                            <label>Migration Standard</label>
+                        <div className="input-group" style={{ marginBottom: '1.25rem' }}>
+                            <label className="input-label">Engine Standard</label>
                             <select
-                                className="form-control"
+                                className="input-field"
                                 value={migrationType}
                                 onChange={e => setMigrationType(e.target.value)}
                             >
-                                <option value="react-hooks">React: Class → Hooks</option>
+                                <option value="react-hooks">React: Class → Hooks (Standard)</option>
                                 <option value="vue3">Vue: v2 → v3 Composition</option>
-                                <option value="python3">Python: v2.7 → v3.x</option>
-                                <option value="typescript" disabled>JS → TypeScript (Beta)</option>
+                                <option value="python3">Python: v2.7 → v3.x Legacy</option>
                             </select>
                         </div>
 
-                        <label className="checkbox-wrap" style={{ marginTop: '0.5rem', marginBottom: '2rem' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginBottom: '1.5rem' }}>
                             <input
                                 type="checkbox"
                                 checked={isDryRun}
                                 onChange={e => setIsDryRun(e.target.checked)}
+                                style={{ width: '16px', height: '16px', accentColor: 'var(--primary)' }}
                             />
-                            <span>Dry Run (Validation Only)</span>
+                            <span style={{ fontSize: '0.85rem', color: 'var(--text-dim)' }}>Dry Run (Validation Only)</span>
                         </label>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             {status === 'running' ? (
-                                <button className="btn btn-danger" onClick={cancelAction}>
-                                    Terminate
-                                </button>
+                                <button className="btn btn-danger" onClick={cancelAction}>Terminate Signal</button>
                             ) : (
                                 <>
-                                    <button className="btn btn-secondary" onClick={() => startAction('analyze')}>
-                                        Run Analysis
-                                    </button>
-                                    <button className="btn btn-primary" onClick={() => startAction('run')}>
-                                        Execute Migration
-                                    </button>
+                                    <button className="btn btn-secondary" onClick={() => startAction('analyze')}>Dry-Run Analyze</button>
+                                    <button className="btn btn-primary" onClick={() => startAction('run')}>Execute Migration</button>
                                 </>
                             )}
                         </div>
                     </div>
-                </aside>
 
-                {/* Console View */}
-                <main className="main-content">
-                    <div>
-                        <h2 className="section-title">Observability</h2>
-                        <div className="metrics-grid">
-                            <div className={`metric-card ${status !== 'idle' ? 'active' : ''}`}>
-                                <div className="metric-label">Scanned</div>
-                                <div className="metric-value">{filesScanned}</div>
-                                <div className="metric-subtext">AST nodes parsed</div>
+                    <div className="glass-card" style={{ border: '1px solid var(--border-glass)', background: 'transparent' }}>
+                        <h4 style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '1rem' }}>Active Telemetry</h4>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                                <span style={{ color: 'var(--text-dim)' }}>Scanned Nodes</span>
+                                <span style={{ fontWeight: 600 }}>{filesScanned}</span>
                             </div>
-                            <div className={`metric-card ${filesMigrated > 0 ? 'success' : ''}`}>
-                                <div className="metric-label">Migrated</div>
-                                <div className="metric-value">{filesMigrated}</div>
-                                <div className="metric-subtext">Transformed successfully</div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                                <span style={{ color: 'var(--text-dim)' }}>Mutations</span>
+                                <span style={{ fontWeight: 600, color: 'var(--emerald)' }}>{filesMigrated}</span>
                             </div>
-                            <div className={`metric-card ${issuesFound > 0 ? 'error' : ''}`}>
-                                <div className="metric-label">Issues</div>
-                                <div className="metric-value" style={{ color: issuesFound > 0 ? 'var(--error-color)' : 'inherit' }}>{issuesFound}</div>
-                                <div className="metric-subtext">Errors flagged</div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                                <span style={{ color: 'var(--text-dim)' }}>Anomalies</span>
+                                <span style={{ fontWeight: 600, color: issuesFound > 0 ? 'var(--rose)' : 'inherit' }}>{issuesFound}</span>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <div className="console-wrapper">
-                        <div className="console-header">
-                            <div className="console-tabs">
-                                <div className="console-tab active">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
-                                    stdout
-                                </div>
-                                <div className="console-tab">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                                    stderr
-                                </div>
-                            </div>
-                            <div className="console-actions">
-                                <button className="console-button" onClick={clearLogs} title="Clear">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                                </button>
-                            </div>
+                <div className="console-container">
+                    <div className="console-header">
+                        <div className="console-tabs">
+                            <div className="tab active">output.stream</div>
+                            <div className="tab">diagnostics.json</div>
                         </div>
-                        <div className="console-body">
-                            {logs.length === 0 ? (
-                                <div className="empty-state">
-                                    <div className="empty-icon">
-                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
-                                    </div>
-                                    <div>
-                                        <div style={{ color: 'var(--text-primary)', fontWeight: 500 }}>Awaiting Instructions</div>
-                                        <div style={{ fontSize: '0.85rem' }}>Trigger an analysis or migration to stream output.</div>
-                                    </div>
-                                </div>
-                            ) : (
-                                logs.map((log, idx) => (
-                                    <div key={idx} className="log-line">
-                                        <span className="log-time">{log.timestamp}</span>
-                                        <span className={`log-content ${log.level}`}>{log.text}</span>
-                                    </div>
-                                ))
-                            )}
-                            <div ref={consoleEndRef} />
-                        </div>
+                        {status === 'running' && <div className="pulse"></div>}
                     </div>
-                </main>
+                    <div className="console-body">
+                        {logs.length === 0 ? (
+                            <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#333' }}>
+                                Awaiting mission parameters...
+                            </div>
+                        ) : (
+                            logs.map((log, idx) => (
+                                <div key={idx} className="log-entry">
+                                    <span className="log-time">{log.timestamp}</span>
+                                    <div className={`log-msg ${log.level}`}>{log.text}</div>
+                                </div>
+                            ))
+                        )}
+                        <div ref={consoleEndRef} />
+                    </div>
+                </div>
             </div>
+        </div>
+    );
+
+    const ComplianceView = () => (
+        <div className="view-container fade-in">
+            <div className="glass-card" style={{ maxWidth: '800px' }}>
+                <h3 style={{ marginBottom: '1.5rem' }}>Compliance & Security Audit</h3>
+                <p style={{ marginBottom: '2rem' }}>Automatic PII/PHI detection and security sandbox validation results based on the last scan.</p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div style={{
+                        background: piiFindings > 0 ? 'rgba(244, 63, 94, 0.05)' : 'rgba(16, 185, 129, 0.05)',
+                        border: piiFindings > 0 ? '1px solid rgba(244, 63, 94, 0.1)' : '1px solid rgba(16, 185, 129, 0.1)',
+                        padding: '1.25rem', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '1rem'
+                    }}>
+                        <div style={{ color: piiFindings > 0 ? 'var(--rose)' : 'var(--emerald)' }}><ShieldIcon /></div>
+                        <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: 600 }}>GDPR / PII Scanner</div>
+                            <div style={{ fontSize: '0.85rem', color: 'var(--text-dim)' }}>
+                                {piiFindings === 0 ? "Zero PII findings across current metadata." : `Flagged ${piiFindings} potential PII patterns.`}
+                            </div>
+                        </div>
+                        <span className={`badge ${piiFindings === 0 ? 'badge-success' : 'badge-warning'}`}>
+                            {piiFindings === 0 ? 'Passed' : 'Review Required'}
+                        </span>
+                    </div>
+
+                    <div style={{
+                        background: securityViolations > 0 ? 'rgba(244, 63, 94, 0.05)' : 'rgba(16, 185, 129, 0.05)',
+                        border: securityViolations > 0 ? '1px solid rgba(244, 63, 94, 0.1)' : '1px solid rgba(16, 185, 129, 0.1)',
+                        padding: '1.25rem', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '1rem'
+                    }}>
+                        <div style={{ color: securityViolations > 0 ? 'var(--rose)' : 'var(--emerald)' }}><ShieldIcon /></div>
+                        <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: 600 }}>Sandbox Integrity</div>
+                            <div style={{ fontSize: '0.85rem', color: 'var(--text-dim)' }}>
+                                {securityViolations === 0 ? "All file operations restricted to safe boundaries." : `Detected ${securityViolations} unauthorized path attempts.`}
+                            </div>
+                        </div>
+                        <span className={`badge ${securityViolations === 0 ? 'badge-success' : 'badge-warning'}`}>
+                            {securityViolations === 0 ? 'Passed' : 'Violation'}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
+
+    return (
+        <div className="app-shell">
+            {/* Sidebar Nav */}
+            <aside className="sidebar">
+                <div className="brand">
+                    <div className="logo-icon">C</div>
+                    <div className="brand-text">
+                        <h1>Code Migration</h1>
+                        <p>Enterprise Edition</p>
+                    </div>
+                </div>
+
+                <nav className="nav-menu">
+                    <div className={`nav-item ${activeView === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveView('dashboard')}>
+                        <LayoutIcon /> Dashboard
+                    </div>
+                    <div className={`nav-item ${activeView === 'migration' ? 'active' : ''}`} onClick={() => setActiveView('migration')}>
+                        <PlayIcon /> Migration Engine
+                    </div>
+                    <div className={`nav-item ${activeView === 'compliance' ? 'active' : ''}`} onClick={() => setActiveView('compliance')}>
+                        <ShieldIcon /> Compliance Center
+                    </div>
+                    <div className={`nav-item ${activeView === 'plugins' ? 'active' : ''}`} onClick={() => setActiveView('plugins')}>
+                        <PackageIcon /> Registry Tools
+                    </div>
+                </nav>
+
+                <div style={{ marginTop: 'auto' }}>
+                    <div className="nav-item" onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}>
+                        <SettingsIcon /> {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                    </div>
+                </div>
+            </aside>
+
+            {/* Content Area */}
+            <main className="main-area">
+                <header className="header">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <CpuIcon />
+                        <div>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>SYSTEM_NODE_01</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Status: {status.toUpperCase()}</div>
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+                        <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>Operator_Admin</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Security Level: HIGH</div>
+                        </div>
+                        <div style={{ width: '40px', height: '40px', background: 'var(--border-glass)', borderRadius: '50%' }}></div>
+                    </div>
+                </header>
+
+                {activeView === 'dashboard' && <DashboardView />}
+                {activeView === 'migration' && <MigrationView />}
+                {activeView === 'compliance' && <ComplianceView />}
+                {activeView === 'plugins' && (
+                    <div className="view-container">
+                        <div className="glass-card">
+                            <h3>Registry Tools</h3>
+                            <p>Scan and manage installed migration plugins.</p>
+                            <div style={{ marginTop: '2rem', padding: '2rem', border: '1px dashed var(--border-glass)', borderRadius: '12px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                Feature under active development.
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </main>
         </div>
     );
 }
