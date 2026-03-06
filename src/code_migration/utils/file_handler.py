@@ -3,7 +3,8 @@ import shutil
 import tempfile
 from pathlib import Path
 from typing import Optional
-from .logger import logger
+from .logger import get_logger
+logger = get_logger(__name__)
 from .sanitizer import validate_path, SecurityError
 
 def create_backup(file_path: Path, backup_dir: Path) -> Path:
