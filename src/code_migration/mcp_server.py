@@ -22,8 +22,7 @@ from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP(
     "Code Migration Assistant",
-    version="0.1.0",
-    description=(
+    instructions=(
         "Enterprise-grade code migration assistant with AI-powered risk "
         "assessment, visual dependency planning, surgical rollback, and "
         "regulatory compliance scanning."
