@@ -35,6 +35,7 @@
 ### Interfaces
 - **Web Dashboard**: Deep integrations across FastAPI, `sse-starlette`, React, Vite, and glassmorphic Vanilla CSS. `python -m code_migration.web`.
 - **Rich Typer CLI**: Built-in terminal commands with rich console outputs and `[Dry Run]` previews.
+- **MCP Server**: Model Context Protocol server for AI application integration (Claude Desktop, VS Code, Cursor, etc.).
 
 ---
 
@@ -51,6 +52,7 @@
                 │
  ├─ Live Dashboard (localhost:8000)
  ├─ Typer CLI (migrate run ...)
+ ├─ MCP Server (stdio transport)
  ├─ Visualizer Graph (D3.js)
  └─ Core Engine (Rollbacks / Security / Tests)
 ```
@@ -87,6 +89,90 @@ migrate analyze ./my-project --type react-hooks --confidence
 
 ---
 
+## MCP Integration
+
+The Code Migration Assistant ships with a built-in [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server, allowing AI applications to use migration tools directly.
+
+### Available MCP Tools
+
+| Tool | Description |
+|------|-------------|
+| `analyze` | Evaluate codebase complexity, risk level, and cost estimates |
+| `run_migration` | Execute AST-based code migrations (dry-run by default) |
+| `compliance_scan` | Scan for PII/PHI (GDPR, HIPAA, PCI-DSS) |
+| `visualize` | Generate dependency graphs and migration-wave plans |
+| `rollback` | Create or restore rollback checkpoints |
+
+### Quick Start (MCP)
+
+```bash
+# Install with MCP support
+pip install -e .
+
+# Test the server locally with the MCP inspector
+mcp dev src/code_migration/mcp_server.py
+```
+
+### Connecting from Claude Desktop
+
+Add to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "code-migration-assistant": {
+      "command": "python",
+      "args": ["-m", "code_migration.mcp_server"],
+      "cwd": "/path/to/code-migration-assistant"
+    }
+  }
+}
+```
+
+### Connecting from VS Code / Cursor
+
+Add to your workspace `.vscode/mcp.json` (or Cursor equivalent):
+
+```json
+{
+  "mcpServers": {
+    "code-migration-assistant": {
+      "command": "python",
+      "args": ["-m", "code_migration.mcp_server"],
+      "cwd": "${workspaceFolder}"
+    }
+  }
+}
+```
+
+### Connecting Programmatically
+
+Any MCP-compatible client can connect by spawning the process:
+
+```python
+# Example with mcp client SDK
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
+
+server_params = StdioServerParameters(
+    command="python",
+    args=["-m", "code_migration.mcp_server"],
+)
+
+async with stdio_client(server_params) as (read, write):
+    async with ClientSession(read, write) as session:
+        await session.initialize()
+        tools = await session.list_tools()
+        result = await session.call_tool("analyze", {
+            "path": "/path/to/project",
+            "migration_type": "react-hooks"
+        })
+```
+
+See [`mcp.json`](mcp.json) for a ready-to-use configuration template.
+
+---
+
 ## CLI Options
 
 Code Migration Assistant operates strictly on command signatures with the `migrate` entrypoint.
@@ -115,7 +201,7 @@ Configure timeouts natively via `pytest.ini`.
 
 ## Docs & Deep Dives
 
-Use these when you’re past the onboarding flow and want the deeper reference. 
+Use these when you're past the onboarding flow and want the deeper reference. 
 
 - [Setup & Prerequisites](docs/INSTALLATION.md)
 - [Comprehensive User Usage Guide](docs/USER_GUIDE.md)
