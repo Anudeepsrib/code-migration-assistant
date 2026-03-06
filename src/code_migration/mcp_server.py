@@ -91,6 +91,32 @@ def analyze(
 
 
 @mcp.tool()
+def list_migrators() -> str:
+    """List all available migration plugins.
+
+    Returns metadata for every registered migrator including name,
+    description, version, supported file extensions, and tags.
+    """
+    from code_migration.registry import create_registry
+
+    registry = create_registry()
+    return json.dumps(
+        [
+            {
+                "name": info.name,
+                "description": info.description,
+                "version": info.version,
+                "supported_extensions": info.supported_extensions,
+                "tags": info.tags,
+                "source": info.source,
+            }
+            for info in registry.list_all()
+        ],
+        indent=2,
+    )
+
+
+@mcp.tool()
 def run_migration(
     path: str,
     migration_type: str = "react-hooks",
@@ -106,20 +132,22 @@ def run_migration(
         migration_type: Migration type identifier (e.g. react-hooks).
         dry_run: If True, preview changes without writing to disk.
     """
-    from code_migration.migrators.react_hooks import ReactHooksMigrator
+    from code_migration.registry import create_registry
     from code_migration.utils.file_handler import safe_read_file, safe_write_file
     from code_migration.utils.sanitizer import validate_path
 
     target = validate_path(path)
 
-    migrators = {
-        "react-hooks": ReactHooksMigrator(),
-    }
+    registry = create_registry()
+    migrator = registry.get(migration_type)
 
-    if migration_type not in migrators:
-        return json.dumps({"error": f"Unknown migration type: {migration_type}"})
+    if migrator is None:
+        available = registry.names()
+        return json.dumps({
+            "error": f"Unknown migration type: {migration_type}",
+            "available_types": available,
+        })
 
-    migrator = migrators[migration_type]
     files = [target] if target.is_file() else list(target.rglob("*"))
     candidates = [f for f in files if f.is_file() and migrator.can_migrate(f)]
 

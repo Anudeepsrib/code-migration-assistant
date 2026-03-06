@@ -1,8 +1,8 @@
 import ast
-import logging
-from typing import Optional, Union, Any
+from typing import Optional, Union, List, Type
+from code_migration.utils.logger import get_logger
 
-logger = logging.getLogger("code_migration")
+logger = get_logger(__name__)
 
 def safe_parse_python(content: str) -> Optional[ast.AST]:
     """

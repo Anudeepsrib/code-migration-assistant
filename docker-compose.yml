@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      target: production
+    image: code-migration-assistant:latest
+    container_name: migration_api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # Application Configuration overriding config.defaults.yaml variables
+      - MIGRATION_SERVER__ENVIRONMENT=production
+      - MIGRATION_SERVER__HOST=0.0.0.0
+      - MIGRATION_SERVER__PORT=8000
+      - MIGRATION_OBSERVABILITY__LOG_LEVEL=INFO
+      - MIGRATION_OBSERVABILITY__LOG_FORMAT=json
+      
+      # Security (Mock API Key for local docker-compose testing)
+      - MIGRATION_API_KEY=dev-enterprise-key-123
+      
+      # Feature Flags
+      - MIGRATION_ANALYSIS__COST_RATE_PER_HOUR=150.0
+    volumes:
+      # Mount projects directory where user code to be analyzed will live
+      - ./projects:/data/projects
+      # Mount internal logs for debugging if needed
+      - migration_logs:/app/.migration-logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+volumes:
+  migration_logs:
+    driver: local

@@ -7,18 +7,17 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
-from code_migration.migrators.react_hooks import ReactHooksMigrator
+from code_migration.registry import create_registry
 from code_migration.utils.file_handler import safe_read_file, safe_write_file, SecurityError
 from code_migration.utils.sanitizer import validate_path
-from code_migration.utils.logger import setup_logger
+from code_migration.utils.logger import get_logger
 
 app = typer.Typer()
 console = Console()
+logger = get_logger(__name__)
 
-# Register migrators (Simple registry for now)
-MIGRATORS = {
-    "react-hooks": ReactHooksMigrator()
-}
+# Auto-discover all registered migrators (builtins + entry_points)
+MIGRATORS = create_registry().as_dict()
 
 @app.command()
 def analyze(

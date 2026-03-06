@@ -26,11 +26,16 @@ dependencies = [
     "fastapi",
     "uvicorn",
     "sse-starlette",
-    "mcp[cli]"
+    "pydantic-settings",
+    "mcp[cli]",
+    "structlog"
 ]
 
 [project.scripts]
 code-migration-mcp = "code_migration.mcp_server:main"
+
+[project.entry-points."code_migration.migrators"]
+react-hooks = "code_migration.migrators.react_hooks:ReactHooksMigrator"
 
 [project.optional-dependencies]
 dev = [

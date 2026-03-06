@@ -3,9 +3,7 @@ import re
 from pathlib import Path
 from typing import List, Optional
 
-class SecurityError(Exception):
-    """Raised when a security violation is detected."""
-    pass
+from code_migration.core.security.input_validator import SecurityError
 
 def validate_path(path: str, base_dir: Optional[str] = None) -> Path:
     """

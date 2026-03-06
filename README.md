@@ -30,10 +30,10 @@
 - **React-Hooks Migration**: `react-hooks` targeting functional rewrites of Class API.
 - **Vue Composition Migration**: `vue3` targeting Vue 2 Option API.
 - **Python Modernization**: `python3` targeting Python 2.7 to 3.x transitions.
+- **Code Analysis Engine**: Pluggable AST parsers support complex control flow tracking across multiple files.
+- **AI-Powered Refactoring**: Reconstructs legacy patterns (e.g. React Classes -> Hooks) with semantic understanding.
 - **Extensible Registry**: A customizable `marketplace` pattern architecture allows easy injections of TypeScript and GraphQL rules.
-
-### Interfaces
-- **Web Dashboard**: Deep integrations across FastAPI, `sse-starlette`, React, Vite, and glassmorphic Vanilla CSS. `python -m code_migration.web`.
+- **Web Dashboard**: Deep integrations across FastAPI, `sse-starlette`, React, Vite, and glassmorphic Vanilla CSS. `uvicorn code_migration.api.app:create_app`.
 - **Rich Typer CLI**: Built-in terminal commands with rich console outputs and `[Dry Run]` previews.
 - **MCP Server**: Model Context Protocol server for AI application integration (Claude Desktop, VS Code, Cursor, etc.).
 
@@ -78,8 +78,10 @@ pip install -e .
 
 2. Start the real-time Web Dashboard:
 ```bash
-python -m code_migration.web
-# Access the UI via browser at http://localhost:8000
+# Start the Backend Server (runs on localhost:8000)
+uvicorn code_migration.api.app:app --reload
+
+# Start the React Frontend (runs on localhost:5173)
 ```
 
 3. Alternatively, invoke the CLI for an analysis:
@@ -213,3 +215,9 @@ Use these when you're past the onboarding flow and want the deeper reference.
 
 This project is licensed under the **Apache License 2.0**.
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines, PR formatting instructions, and how to define custom migration classes.
+
+##  System Architecture & Plugins
+The application leverages a decentralized **Plugin Registry** based on Python entry-points and a Pydantic BaseSettings engine for environment configuration. 
+- Read the [Architecture Overview](docs/ARCHITECTURE.md) for sequence flow and design decisions.
+- Read the [Plugin Developer Guide](docs/PLUGIN_GUIDE.md) to learn how to dynamically inject proprietary enterprise migrations into this tool.
+

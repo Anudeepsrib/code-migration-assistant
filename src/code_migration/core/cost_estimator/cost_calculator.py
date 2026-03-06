@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from ..security import SecurityAuditLogger
+from code_migration.config import settings
 
 
 @dataclass
@@ -45,7 +46,7 @@ class CostCalculator:
     def __init__(
         self,
         project_path: Path,
-        hourly_rate: float = 100.0,
+        hourly_rate: float = None,
         currency: str = 'USD'
     ):
         """
@@ -57,7 +58,7 @@ class CostCalculator:
             currency: Currency code
         """
         self.project_path = Path(project_path)
-        self.hourly_rate = hourly_rate
+        self.hourly_rate = hourly_rate if hourly_rate is not None else settings.analysis.cost_rate_per_hour
         self.currency = currency
         
         log_dir = self.project_path / '.migration-logs'

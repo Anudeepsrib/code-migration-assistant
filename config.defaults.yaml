@@ -1,0 +1,33 @@
+# Code Migration Assistant - Default Configuration
+# Values here override the base internal defaults, but can be
+# overridden by environment variables (e.g. MIGRATION_SECURITY__LEVEL)
+
+security:
+  level: high
+  audit_logging: true
+  max_file_size_kb: 5000
+  rate_limit_per_minute: 60
+
+analysis:
+  # The formula used by the Confidence engine to score a codebase
+  confidence_weights:
+    complexity: 0.25
+    test_coverage: 0.25
+    dependency_health: 0.25
+    breaking_changes: 0.25
+  
+  # For the cost estimator executive reports
+  cost_rate_per_hour: 100.0
+  max_workers: 4
+  timeout_seconds: 300
+
+server:
+  host: "127.0.0.1"
+  port: 8000
+  cors_origins:
+    - "*"
+    - "http://localhost:5173"  # Vite dev server
+
+observability:
+  log_level: "INFO"
+  log_format: "text"  # Use 'json' for production/ELK stack

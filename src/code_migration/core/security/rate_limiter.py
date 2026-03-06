@@ -131,10 +131,11 @@ class MultiRateLimiter:
     
     def __init__(self):
         """Initialize multiple rate limiters."""
+        from code_migration.config import settings
         self.limiters = {
             'migration': RateLimiter(max_requests=10, time_window=3600),  # 10 per hour
             'file_ops': RateLimiter(max_requests=100, time_window=60),    # 100 per minute
-            'api_calls': RateLimiter(max_requests=1000, time_window=3600), # 1000 per hour
+            'api_calls': RateLimiter(max_requests=settings.security.rate_limit_per_minute, time_window=60), # configurable, default 60 per min
             'analysis': RateLimiter(max_requests=50, time_window=3600),   # 50 per hour
         }
     

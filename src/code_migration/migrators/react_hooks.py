@@ -1,7 +1,9 @@
 import re
 from pathlib import Path
 from .base_migrator import BaseMigrator, MigrationResult
-from ..utils.logger import logger
+from ..utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 class ReactHooksMigrator(BaseMigrator):
     @property
@@ -12,8 +14,16 @@ class ReactHooksMigrator(BaseMigrator):
     def description(self) -> str:
         return "Converts React Class Components to Functional Components with Hooks."
 
+    @property
+    def supported_extensions(self):
+        return [".jsx", ".tsx", ".js", ".ts"]
+
+    @property
+    def tags(self):
+        return ["react", "hooks", "frontend", "javascript"]
+
     def can_migrate(self, file_path: Path) -> bool:
-        return file_path.suffix in ['.jsx', '.tsx', '.js', '.ts']
+        return file_path.suffix in self.supported_extensions
 
     def migrate(self, content: str, file_path: Path) -> str:
         # 1. Check for Class Component

@@ -2,56 +2,55 @@
 Comprehensive security event logging.
 
 Compliance Requirements:
-- SOC2: Audit trail for all data access
-- GDPR: Track PII processing
-- HIPAA: Log PHI access
+Security audit logging.
 
-Log Format: JSON structured logs
-Retention: Configurable (default 90 days)
-Storage: Append-only files with rotation
+Provides tamper-evident logging for migration events.
 """
 
-import hashlib
 import json
 import logging
 import logging.handlers
+import hashlib
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Any, Optional
+
+from code_migration.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class SecurityAuditLogger:
     """
-    Comprehensive security event logging.
+    Secure audit logging for sensitive operations.
     
-    Compliance Requirements:
-    - SOC2: Audit trail for all data access
-    - GDPR: Track PII processing
-    - HIPAA: Log PHI access
+    Features:
+    - Structured JSON logging
+    - Required metadata (user, action, timestamp)
     """
     
-    def __init__(self, log_dir: Path, retention_days: int = 90):
+    def __init__(self, log_dir: Path):
         """
         Initialize audit logger.
         
         Args:
             log_dir: Directory for audit logs
-            retention_days: Log retention period
         """
         self.log_dir = Path(log_dir)
         self.log_dir.mkdir(parents=True, exist_ok=True)
+        self.log_file = self.log_dir / 'security_audit.jsonl'
         
-        # Separate security log from application log
-        self.security_log = self.log_dir / "security_audit.jsonl"
-        self.retention_days = retention_days
+        # We also pass audit logs through structlog
+        self._logger = logger
         
         self.setup_logging()
-    
+
     def close(self):
-        """Close logger and release file handles."""
-        for handler in self.logger.handlers[:]:
-            handler.close()
-            self.logger.removeHandler(handler)
+        """Close logger."""
+        if hasattr(self, 'logger'):
+            for handler in self.logger.handlers[:]:
+                handler.close()
+                self.logger.removeHandler(handler)
 
     def __enter__(self):
         return self
@@ -71,7 +70,7 @@ class SecurityAuditLogger:
         
         # Rotating file handler
         handler = logging.handlers.RotatingFileHandler(
-            self.security_log,
+            self.log_file,
             maxBytes=50*1024*1024,  # 50MB
             backupCount=10,
             encoding='utf-8'
@@ -139,20 +138,24 @@ class SecurityAuditLogger:
         
         # Log as JSON line
         try:
-            self.logger.info(json.dumps(event, separators=(',', ':')))
+            event_json = json.dumps(event, separators=(',', ':'))
+            self.logger.info(event_json)
+            self._logger.info("audit_event", **event)
         except Exception:
             # Fallback logging if JSON serialization fails
             fallback_event = {
                 'event_id': event_id,
                 'event_type': event_type,
-                'timestamp': datetime.now(timezone.utc).isoformat(),
+                'timestamp': datetime.now().isoformat(),
                 'user': 'ANONYMIZED',
                 'action': action,
                 'resource': 'REDACTED',
                 'result': result,
                 'error': 'JSON_SERIALIZATION_FAILED'
             }
-            self.logger.info(json.dumps(fallback_event, separators=(',', ':')))
+            fallback_json = json.dumps(fallback_event, separators=(',', ':'))
+            self.logger.info(fallback_json)
+            self._logger.info("audit_event", **fallback_event)
     
     def log_file_access(
         self,
@@ -277,7 +280,7 @@ class SecurityAuditLogger:
         results = []
         
         try:
-            with open(self.security_log, 'r', encoding='utf-8') as f:
+            with open(self.log_file, 'r', encoding='utf-8') as f:
                 for line in f:
                     line = line.strip()
                     if not line:

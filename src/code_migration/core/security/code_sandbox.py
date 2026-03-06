@@ -11,10 +11,13 @@ Defense Layers:
 
 import ast
 import json
+import os
 from pathlib import Path
 from typing import Dict, List, Any
 
 from .input_validator import SecurityError
+from ..security.crypto_handler import SecureFileHandler
+from code_migration.config import settings
 
 
 class SafeCodeAnalyzer:
@@ -23,9 +26,6 @@ class SafeCodeAnalyzer:
     
     Security Principle: Static analysis only, no dynamic execution.
     """
-    
-    # Maximum file size to analyze (10MB)
-    MAX_FILE_SIZE = 10 * 1024 * 1024
     
     # Maximum lines to process
     MAX_LINES = 100_000
@@ -47,10 +47,9 @@ class SafeCodeAnalyzer:
         # Validate file size
         if not file_path.exists():
             raise SecurityError(f"File does not exist: {file_path}")
-        
-        file_size = file_path.stat().st_size
-        if file_size > SafeCodeAnalyzer.MAX_FILE_SIZE:
-            raise SecurityError(f"File too large: {file_size} bytes")
+        file_size = os.path.getsize(file_path)
+        if file_size > (settings.security.max_file_size_kb * 1024):
+            return {"safe": False, "reason": f"File exceeds maximum size of {settings.security.max_file_size_kb}KB"}
         
         # Read file with size limit
         try:

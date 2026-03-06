@@ -47,15 +47,18 @@ class MigrationConfidenceAnalyzer:
     SECURITY: All analysis is static, no code execution.
     """
     
-    # Scoring weights
+    # default weights if not in config
     WEIGHTS = {
-        'test_coverage': 0.25,      # Higher coverage = higher confidence
-        'complexity': 0.20,          # Lower complexity = higher confidence
-        'dependencies': 0.15,        # Fewer/healthier deps = higher confidence
-        'code_quality': 0.15,        # Better quality = higher confidence
-        'breaking_changes': 0.15,    # Fewer breaking changes = higher confidence
-        'team_experience': 0.10,     # More experience = higher confidence
+        'test_coverage': 0.25,
+        'complexity': 0.20,
+        'dependencies': 0.15,
+        'code_quality': 0.15,
+        'breaking_changes': 0.15,
+        'team_experience': 0.10,
     }
+    # Update with configured weights
+    from code_migration.config import settings
+    WEIGHTS.update(settings.analysis.confidence_weights)
     
     # Migration complexity multipliers
     MIGRATION_COMPLEXITY = {
@@ -129,10 +132,14 @@ class MigrationConfidenceAnalyzer:
         factors['complexity'] = self._analyze_complexity()
         
         # 3. Dependency Health
-        factors['dependencies'] = self._analyze_dependencies()
+        deps = self._analyze_dependencies()
+        factors['dependencies'] = deps
+        factors['dependency_health'] = deps
         
         # 4. Code Quality (linting, formatting)
-        factors['code_quality'] = self._analyze_code_quality()
+        cq = self._analyze_code_quality()
+        factors['code_quality'] = cq
+        factors['code_health'] = cq
         
         # 5. Breaking Changes Estimation
         factors['breaking_changes'] = self._estimate_breaking_changes(migration_type)

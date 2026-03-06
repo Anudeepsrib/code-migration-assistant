@@ -1,40 +1,39 @@
-import os
 import asyncio
+from typing import List
 from pathlib import Path
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
+
+from fastapi import APIRouter, Depends, Request
 from sse_starlette.sse import EventSourceResponse
 
-from code_migration.migrators.react_hooks import ReactHooksMigrator
-from code_migration.utils.file_handler import safe_read_file, safe_write_file, SecurityError
+from code_migration.api.deps import get_registry
+from code_migration.api.schemas import PluginInfoSchema
+from code_migration.registry import MigratorRegistry
+from code_migration.core.security.input_validator import SecurityError
+from code_migration.utils.file_handler import safe_read_file, safe_write_file
 from code_migration.utils.sanitizer import validate_path
-import uvicorn
 
-app = FastAPI(title="Code Migration Assistant API")
+router = APIRouter()
 
-# Allow CORS for development (Vite dev server)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+@router.get("/migrators", response_model=List[PluginInfoSchema])
+async def list_migrators(registry: MigratorRegistry = Depends(get_registry)):
+    """List all available migration plugins."""
+    return registry.list_all()
 
-MIGRATORS = {
-    "react-hooks": ReactHooksMigrator()
-}
+@router.get("/analyze")
+async def analyze(
+    path: str,
+    type: str = "react-hooks",
+    request: Request = None,
+    registry: MigratorRegistry = Depends(get_registry)
+):
+    """Streaming endpoint for analyzing a migration plan."""
 
-@app.get("/api/analyze")
-async def analyze(path: str, type: str = "react-hooks", request: Request = None):
     async def event_generator():
-        if type not in MIGRATORS:
+        migrator = registry.get(type)
+        if not migrator:
             yield {"data": f"Error: Unknown migration type: {type}"}
             return
 
-        migrator = MIGRATORS[type]
         yield {"data": f"Analyzing {path} for {type}..."}
         
         try:
@@ -53,8 +52,7 @@ async def analyze(path: str, type: str = "react-hooks", request: Request = None)
         
         candidates = []
         for file in files:
-            # Let the event loop breathe for UI responsiveness during large scans
-            await asyncio.sleep(0.001) 
+            await asyncio.sleep(0.001)  # Context switch for UI responsiveness
             if file.is_file() and migrator.can_migrate(file):
                 candidates.append(file)
                 files_found += 1
@@ -66,15 +64,23 @@ async def analyze(path: str, type: str = "react-hooks", request: Request = None)
     return EventSourceResponse(event_generator())
 
 
-@app.get("/api/run")
-async def run_migration(path: str, type: str = "react-hooks", dry_run: str = "false", request: Request = None):
+@router.get("/run")
+async def run_migration(
+    path: str,
+    type: str = "react-hooks",
+    dry_run: str = "false",
+    request: Request = None,
+    registry: MigratorRegistry = Depends(get_registry)
+):
+    """Streaming endpoint to execute a migration."""
     is_dry_run = dry_run.lower() == "true"
+
     async def event_generator():
-        if type not in MIGRATORS:
+        migrator = registry.get(type)
+        if not migrator:
             yield {"data": f"Error: Unknown migration type: {type}"}
             return
 
-        migrator = MIGRATORS[type]
         yield {"data": f"Starting migration on {path} with type {type}..."}
         
         try:
@@ -99,7 +105,7 @@ async def run_migration(path: str, type: str = "react-hooks", dry_run: str = "fa
         yield {"data": f"Found {len(files_to_process)} files to process."}
 
         for file_path in files_to_process:
-            await asyncio.sleep(0.01) # UI responsiveness
+            await asyncio.sleep(0.01)  # Context switch
             try:
                 content = safe_read_file(str(file_path))
                 new_content = migrator.migrate(content, file_path)
@@ -120,17 +126,3 @@ async def run_migration(path: str, type: str = "react-hooks", dry_run: str = "fa
         yield {"data": "DONE"}
 
     return EventSourceResponse(event_generator())
-
-
-# Serve React app
-# We will serve the dist folder built by Vite.
-STATIC_DIR = Path(__file__).parent.parent.parent / "ui" / "dist"
-if STATIC_DIR.exists():
-    app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")
-else:
-    @app.get("/")
-    async def index():
-        return HTMLResponse("UI Not Built. Run 'npm install && npm run build' in the /ui directory.")
-
-if __name__ == "__main__":
-    uvicorn.run("code_migration.web:app", host="0.0.0.0", port=8000, reload=True)

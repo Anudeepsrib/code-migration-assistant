@@ -8,3 +8,5 @@ fastapi
 uvicorn
 sse-starlette
 mcp[cli]
+pydantic-settings
+structlog

@@ -92,7 +92,12 @@ Follow the [Code Standards](#code-standards) and [Testing Guidelines](#testing-g
 
 ### 4. Commit
 
-Use [Conventional Commits](https://www.conventionalcommits.org/):
+We use **[Conventional Commits](https://www.conventionalcommits.org/)** to auto-generate our changelogs and version releases via our Semantic Release GitHub Actions pipeline.
+
+**Required Formatting:**
+- `feat:` for a new feature (triggers MINOR release)
+- `fix:` for a bug fix (triggers PATCH release)
+- `docs:`, `test:`, `chore:`, `refactor:` (no release triggered)
 
 ```bash
 git commit -m "feat: add Angular migration support"
