@@ -1,99 +1,184 @@
-# Code Migration Assistant
+<div align="center">
+  <img src="public/shiftiq_logo.png" alt="ShiftIQ Logo" width="150" style="border-radius: 20%; margin-bottom: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
+  
+  <h1 style="margin-top: 0;">ShiftIQ ⚡</h1>
+  
+  <p><b>"Analyze it. Migrate it. Own it. Your codebase never leaves your machine."</b></p>
+  
+  <p>An enterprise-grade, security-first code migration assistant with AI-powered risk assessment, visual dependency planning, surgical rollback, and regulatory compliance scanning.</p>
 
-**Enterprise-grade, security-first code migration tool** with AI-powered risk assessment, visual dependency planning, surgical rollback, and regulatory compliance scanning. Designed for teams that need to modernize large codebases with confidence — not guesswork.
+  <p>
+    <a href="https://github.com/Anudeepsrib/code-migration-assistant">
+      <img src="https://img.shields.io/github/stars/Anudeepsrib/code-migration-assistant?style=for-the-badge&logo=github" alt="GitHub stars" />
+    </a>
+    <a href="https://github.com/Anudeepsrib/code-migration-assistant">
+      <img src="https://img.shields.io/github/forks/Anudeepsrib/code-migration-assistant?style=for-the-badge&logo=github" alt="GitHub forks" />
+    </a>
+    <a href="https://github.com/Anudeepsrib/code-migration-assistant/blob/main/LICENSE">
+      <img src="https://img.shields.io/github/license/Anudeepsrib/code-migration-assistant?style=for-the-badge" alt="License" />
+    </a>
+    <a href="https://github.com/Anudeepsrib/code-migration-assistant/actions/workflows/ci.yml">
+      <img src="https://img.shields.io/github/actions/workflow/status/Anudeepsrib/code-migration-assistant/ci.yml?style=for-the-badge&logo=githubactions&label=CI" alt="CI Status" />
+    </a>
+  </p>
 
-[![CI](https://github.com/anudeepsrib/code-migration-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/anudeepsrib/code-migration-assistant/actions/workflows/ci.yml)
-[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![Agent Skills Standard](https://img.shields.io/badge/Agent_Skills-Standard-green)](https://agentskills.io)
-
----
-
-## Highlights
-
-- **[Live Dashboard](docs/USER_GUIDE.md#dashboard)** — real-time web UI powered by FastAPI and React with SSE log streaming.
-- **[Security-first AST Analysis](docs/security/SECURITY.md)** — zero code execution, sandboxed Python AST parsing, and injection prevention.
-- **[Visual Dependency Graph](docs/USER_GUIDE.md#visualize)** — build interactive NetworkX & D3.js project dependency nodes to see the blast radius before executing.
-- **[Git Time Machine](docs/USER_GUIDE.md#rollback)** — atomic snapshots and surgical rollback support per-file.
-- **[Regulatory Compliance](docs/security/SECURITY.md#compliance)** — out-of-the-box PII/PHI detection (GDPR, HIPAA, PCI-DSS) integrated directly into the migration stream.
-- **[AI Co-pilot + RAG](docs/USER_GUIDE.md#copilot)** — context-aware migration queries mapped against your actual workspace codebase.
-
-## Everything we built so far
-
-### Core Platform
-- **[Confidence Analyzer](docs/USER_GUIDE.md#analyze)** with cyclomatic complexity scoring, API surface evaluation, and risk assignments (LOW to CRITICAL).
-- **[Cost Estimator](docs/USER_GUIDE.md#cost)** to project return on investment (ROI) with sprint planning breakdowns.
-- **[Task Scaffolding](docs/USER_GUIDE.md#tests)** with automated unit, integration, and mock generation based on abstract syntax trees.
-- **[Live Canary Migration](docs/USER_GUIDE.md#live-migration)** with traffic splitting, health checks, and automated reversion on latency spikes.
-
-### Analyzers & Migrators 
-- **React-Hooks Migration**: `react-hooks` targeting functional rewrites of Class API.
-- **Vue Composition Migration**: `vue3` targeting Vue 2 Option API.
-- **Python Modernization**: `python3` targeting Python 2.7 to 3.x transitions.
-- **Code Analysis Engine**: Pluggable AST parsers support complex control flow tracking across multiple files.
-- **AI-Powered Refactoring**: Reconstructs legacy patterns (e.g. React Classes -> Hooks) with semantic understanding.
-- **Extensible Registry**: A customizable `marketplace` pattern architecture allows easy injections of TypeScript and GraphQL rules.
-- **Web Dashboard**: Deep integrations across FastAPI, `sse-starlette`, React, Vite, and glassmorphic Vanilla CSS. `uvicorn code_migration.api.app:create_app`.
-- **Rich Typer CLI**: Built-in terminal commands with rich console outputs and `[Dry Run]` previews.
-- **MCP Server**: Model Context Protocol server for AI application integration (Claude Desktop, VS Code, Cursor, etc.).
+  <p>
+    <a href="#-core-features">Features</a> •
+    <a href="#-quick-start">Quick Start</a> •
+    <a href="#%EF%B8%8F-tech-stack">Tech Stack</a> •
+    <a href="#-mcp-integration">MCP</a> •
+    <a href="#-cli-reference">CLI</a>
+  </p>
+  
+  <a href="https://github.com/Anudeepsrib/code-migration-assistant">
+    <img src="https://github-readme-stats.vercel.app/api/pin/?username=Anudeepsrib&repo=code-migration-assistant&theme=radical&show_owner=true" alt="Readme Card" />
+  </a>
+</div>
 
 ---
 
-## How it works (short)
+## 🔒 The Security-First Promise
 
-```text
- Legacy Repository (React, Vue, Python)
-                   │
-                   ▼
-  ┌─────────────────────────────────┐
-  │ Code Migration Assistant        │
-  │ (AST Parsers & Risk Analyzers)  │
-  └─────────────┬───────────────────┘
-                │
- ├─ Live Dashboard (localhost:8000)
- ├─ Typer CLI (migrate run ...)
- ├─ MCP Server (stdio transport)
- ├─ Visualizer Graph (D3.js)
- └─ Core Engine (Rollbacks / Security / Tests)
-```
+ShiftIQ is built on the philosophy of zero-trust code analysis. Your source code never leaves your machine, and no line of your code is ever executed during analysis.
 
-## Key subsystems
-
-- **[Confidence Core](docs/USER_GUIDE.md#analyze)** — scores codebase complexity and dependency health prior to any execution.
-- **[Visual Planner](docs/USER_GUIDE.md#visualize)** — implements topological sorts to define the exact order ("waves") of modules to migrate based on dependency constraints.
-- **[FastAPI Control Plane](src/code_migration/web.py)** — unidirectional `EventSourceResponse` wrapping standard CLI functions for UI streaming.
-- **[Compliance Suite](docs/security/SECURITY.md)** — regex pattern and heuristic scanning for over 15+ sensitive data markers (SSN, medical ids, credit cards) with auto-anonymization.
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>🧩 Sandboxed AST Parsing</h3>
+      <p>All analysis uses Python's Abstract Syntax Tree — your legacy code is parsed, <b>never executed</b>. Zero runtime side-effects, guaranteed.</p>
+    </td>
+    <td width="50%" valign="top">
+      <h3>🛡️ Injection Prevention</h3>
+      <p>Built-in path traversal guards, input sanitization, and allowlist-only file access. Hardened against adversarial codebases.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>📋 Regulatory Compliance</h3>
+      <p>Integrated PII/PHI scanners for <b>GDPR, HIPAA, PCI-DSS</b>. Detects SSNs, medical IDs, credit cards, and 15+ sensitive data markers with auto-anonymization.</p>
+    </td>
+    <td width="50%" valign="top">
+      <h3>⏪ Surgical Rollback</h3>
+      <p>Atomic Git snapshots before every migration. Revert per-file or per-checkpoint — a true <b>Git Time Machine</b> for your codebase.</p>
+    </td>
+  </tr>
+</table>
 
 ---
 
-## Quick Start (Installation)
+## ✨ Core Features
 
-1. Clone and install the application:
+<table>
+  <tr>
+    <td width="33%" valign="top">
+      <b>📊 Confidence Analyzer</b><br/>
+      Scores cyclomatic complexity, API surface area, and dependency health. Assigns risk levels from LOW to CRITICAL before a single line is touched.
+    </td>
+    <td width="33%" valign="top">
+      <b>🕸️ Visual Dependency Graph</b><br/>
+      Interactive NetworkX & D3.js visualizations. See the blast radius, topological migration waves, and dependency constraints in your browser.
+    </td>
+    <td width="33%" valign="top">
+      <b>🤖 AI Co-pilot & RAG</b><br/>
+      Context-aware migration queries grounded against your actual workspace codebase. Powered by local LLMs via the MCP protocol.
+    </td>
+  </tr>
+  <tr>
+    <td width="33%" valign="top">
+      <b>💰 Cost Estimator</b><br/>
+      Projects ROI with sprint-level breakdowns. Know the engineering hours before you commit to the migration.
+    </td>
+    <td width="33%" valign="top">
+      <b>🧪 Test Scaffolding</b><br/>
+      Auto-generates unit, integration, and mock tests from AST analysis over modified files. Safety nets, automated.
+    </td>
+    <td width="33%" valign="top">
+      <b>🚦 Live Canary Migration</b><br/>
+      A/B traffic splitting with health checks and auto-revert on latency spikes. Ship with confidence, not prayers.
+    </td>
+  </tr>
+</table>
+
+---
+
+## 🚀 Quick Start
+
+Get up and running locally in under 5 minutes.
+
+### 1. Clone & Install
 ```bash
-git clone https://github.com/anudeepsrib/code-migration-assistant.git
+git clone https://github.com/Anudeepsrib/code-migration-assistant.git
 cd code-migration-assistant
 pip install -r requirements.txt
 pip install -e .
 ```
 
-2. Start the real-time Web Dashboard:
+### 2. Launch the Dashboard
+Launch two terminal windows to start the backend engine and frontend interface.
+
+**Terminal 1 — FastAPI Backend (localhost:8000):**
 ```bash
-# Start the Backend Server (runs on localhost:8000)
 uvicorn code_migration.api.app:app --reload
-
-# Start the React Frontend (runs on localhost:5173)
 ```
 
-3. Alternatively, invoke the CLI for an analysis:
+**Terminal 2 — React + Vite Frontend (localhost:5173):**
 ```bash
-migrate analyze ./my-project --type react-hooks --confidence
+cd ui
+npm install
+npm run dev
 ```
+
+### 3. Or, Use the CLI
+```bash
+# Analyze a project for migration readiness
+migrate analyze ./my-project --type react-hooks --confidence
+
+# Visualize dependency graph
+migrate visualize ./my-project
+
+# Dry-run a migration
+migrate run ./my-project --type react-hooks --dry-run
+```
+
+Open [http://localhost:5173](http://localhost:5173) to access the real-time dashboard.
 
 ---
 
-## MCP Integration
+## 🛠️ Tech Stack
 
-The Code Migration Assistant ships with a built-in [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server, allowing AI applications to use migration tools directly.
+<table>
+  <tr>
+    <th width="50%">Frontend (Dashboard)</th>
+    <th width="50%">Backend (Analysis Engine)</th>
+  </tr>
+  <tr>
+    <td valign="top">
+      <ul>
+        <li><b>Framework:</b> React 18 + Vite 5</li>
+        <li><b>Styling:</b> Glassmorphic Vanilla CSS</li>
+        <li><b>Streaming:</b> SSE (Server-Sent Events)</li>
+        <li><b>Visualization:</b> D3.js + NetworkX</li>
+        <li><b>Language:</b> TypeScript</li>
+      </ul>
+    </td>
+    <td valign="top">
+      <ul>
+        <li><b>API:</b> FastAPI + Uvicorn</li>
+        <li><b>Analysis:</b> Python AST (sandboxed)</li>
+        <li><b>CLI:</b> Typer + Rich</li>
+        <li><b>AI Protocol:</b> MCP (Model Context Protocol)</li>
+        <li><b>Logging:</b> Structlog</li>
+        <li><b>Config:</b> Pydantic Settings + YAML</li>
+      </ul>
+    </td>
+  </tr>
+</table>
+
+---
+
+## 🔌 MCP Integration
+
+ShiftIQ ships with a built-in [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server, allowing AI applications like Claude Desktop, VS Code Copilot, and Cursor to invoke migration tools directly.
 
 ### Available MCP Tools
 
@@ -105,20 +190,9 @@ The Code Migration Assistant ships with a built-in [Model Context Protocol (MCP)
 | `visualize` | Generate dependency graphs and migration-wave plans |
 | `rollback` | Create or restore rollback checkpoints |
 
-### Quick Start (MCP)
-
-```bash
-# Install with MCP support
-pip install -e .
-
-# Test the server locally with the MCP inspector
-mcp dev src/code_migration/mcp_server.py
-```
-
-### Connecting from Claude Desktop
+### Connect from Claude Desktop
 
 Add to your `claude_desktop_config.json`:
-
 ```json
 {
   "mcpServers": {
@@ -131,10 +205,9 @@ Add to your `claude_desktop_config.json`:
 }
 ```
 
-### Connecting from VS Code / Cursor
+### Connect from VS Code / Cursor
 
-Add to your workspace `.vscode/mcp.json` (or Cursor equivalent):
-
+Add to your workspace `.vscode/mcp.json`:
 ```json
 {
   "mcpServers": {
@@ -147,77 +220,94 @@ Add to your workspace `.vscode/mcp.json` (or Cursor equivalent):
 }
 ```
 
-### Connecting Programmatically
-
-Any MCP-compatible client can connect by spawning the process:
-
-```python
-# Example with mcp client SDK
-from mcp import ClientSession, StdioServerParameters
-from mcp.client.stdio import stdio_client
-
-server_params = StdioServerParameters(
-    command="python",
-    args=["-m", "code_migration.mcp_server"],
-)
-
-async with stdio_client(server_params) as (read, write):
-    async with ClientSession(read, write) as session:
-        await session.initialize()
-        tools = await session.list_tools()
-        result = await session.call_tool("analyze", {
-            "path": "/path/to/project",
-            "migration_type": "react-hooks"
-        })
+### Test Locally
+```bash
+pip install -e .
+mcp dev src/code_migration/mcp_server.py
 ```
 
 See [`mcp.json`](mcp.json) for a ready-to-use configuration template.
 
 ---
 
-## CLI Options
+## 🧠 Supported Migrations
 
-Code Migration Assistant operates strictly on command signatures with the `migrate` entrypoint.
-
-- `migrate analyze [path]` — evaluate files, score complexity, report candidate lists.
-- `migrate visualize [path]` — export interactive HTML network dependency maps.
-- `migrate run [path] --type [id]` — invoke AST rewrites (append `--dry-run` to preview).
-- `migrate live-migration [path]` — execute with A/B canaries and auto-revert protocols.
-- `migrate generate-tests [path]` — emit safety scaffolding (tests & mocks) over modified files.
-- `migrate compliance scan [path]` — scan for regulatory violations.
-- `migrate rollback [checkpoint]` — revert repository state.
+| Migration Type | Target | Description |
+|----------------|--------|-------------|
+| **React Hooks** | `react-hooks` | Class Component API → Functional Hooks rewrite |
+| **Vue 3 Composition** | `vue3` | Vue 2 Options API → Composition API |
+| **Python 3** | `python3` | Python 2.7 → 3.x modernization |
+| **Custom** | `marketplace` | Extensible plugin registry for TypeScript, GraphQL, and more |
 
 ---
 
-## Operations & Testing
-OpenClaw architectures respect high-fidelity observability and rigorous testing matrices. Code Migration Assistant enforces four tiers of testing protocols.
+## ⌨️ CLI Reference
 
-- **Fast & Unit:** `pytest -m "not slow"`
-- **Security Control:** `pytest tests/security/` (prevents path traversing & injections)
-- **Compliance:** `pytest tests/compliance/` (validates PII/PHI scanners)
-- **Performance Stress:** `pytest tests/performance/` (8GB+ RAM requested for large file volume generation)
+All commands use the `migrate` entrypoint:
 
-Configure timeouts natively via `pytest.ini`.
+| Command | Description |
+|---------|-------------|
+| `migrate analyze [path]` | Evaluate files, score complexity, report candidate lists |
+| `migrate visualize [path]` | Export interactive HTML dependency maps |
+| `migrate run [path] --type [id]` | Invoke AST rewrites (`--dry-run` to preview) |
+| `migrate live-migration [path]` | Execute with A/B canaries and auto-revert |
+| `migrate generate-tests [path]` | Emit safety scaffolding (tests & mocks) |
+| `migrate compliance scan [path]` | Scan for regulatory violations |
+| `migrate rollback [checkpoint]` | Revert repository state to a checkpoint |
 
 ---
 
-## Docs & Deep Dives
+## 🐳 Docker
 
-Use these when you're past the onboarding flow and want the deeper reference. 
+Run the full analysis engine in a container:
 
-- [Setup & Prerequisites](docs/INSTALLATION.md)
-- [Comprehensive User Usage Guide](docs/USER_GUIDE.md)
-- [Security Threat Model & Policy](docs/security/SECURITY.md)
-- [Skill Integration Manifest](SKILL.md)
-- [Contributing Standards](CONTRIBUTING.md)
+```bash
+docker-compose up --build
+```
 
-## License & Community
+The API will be available at `http://localhost:8000` with health checks at `/healthz`.
 
-This project is licensed under the **Apache License 2.0**.
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines, PR formatting instructions, and how to define custom migration classes.
+---
 
-##  System Architecture & Plugins
-The application leverages a decentralized **Plugin Registry** based on Python entry-points and a Pydantic BaseSettings engine for environment configuration. 
-- Read the [Architecture Overview](docs/ARCHITECTURE.md) for sequence flow and design decisions.
-- Read the [Plugin Developer Guide](docs/PLUGIN_GUIDE.md) to learn how to dynamically inject proprietary enterprise migrations into this tool.
+## 🧪 Testing
 
+ShiftIQ enforces four tiers of testing protocols:
+
+| Tier | Command | Scope |
+|------|---------|-------|
+| **Fast & Unit** | `pytest -m "not slow"` | Core logic and AST parsers |
+| **Security** | `pytest tests/security/` | Path traversal & injection prevention |
+| **Compliance** | `pytest tests/compliance/` | PII/PHI scanner validation |
+| **Performance** | `pytest tests/performance/` | Large-file stress tests (8GB+ RAM) |
+
+Configure timeouts via `pytest.ini`.
+
+---
+
+## 📚 Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Setup & Prerequisites](docs/INSTALLATION.md) | Full installation and dependency guide |
+| [User Guide](docs/USER_GUIDE.md) | Comprehensive usage documentation |
+| [Security Model](docs/security/SECURITY.md) | Threat model, policies, and compliance |
+| [Architecture Overview](docs/ARCHITECTURE.md) | System design and sequence flows |
+| [Plugin Developer Guide](docs/PLUGIN_GUIDE.md) | Build custom migration plugins |
+| [Contributing](CONTRIBUTING.md) | PR formatting, guidelines, and standards |
+| [Skill Manifest](SKILL.md) | Agent integration specification |
+
+---
+
+## ⚠️ Disclaimer
+**For Development Use Only:** ShiftIQ is an open-source development tool. While it includes compliance scanners, it does **not** replace professional security audits or legal compliance reviews. Always validate migration outputs with your team before deploying to production.
+
+---
+
+<div align="center">
+  <p>Built with ⚡ for teams that modernize codebases with confidence.</p>
+  <p>
+    <a href="https://github.com/Anudeepsrib/code-migration-assistant">
+      <img src="https://img.shields.io/badge/Apache--2.0-License-blue?style=flat-square" alt="License" />
+    </a>
+  </p>
+</div>
